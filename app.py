@@ -482,14 +482,24 @@ if SOCK_OK:
                     if isinstance(data, bytes) and len(data) > 0:
                         audio_buffer.append(data)
                         last_activity = time.time()
-                        samples = _struct.unpack_from('<' + 'h' * (len(data)//2), data)
-                        rms = (sum(s*s for s in samples)/len(samples))**0.5
-                        if rms > 500:
+                        # 32-bit float PCM VAD判断
+                        import numpy as np__vad
+                        if len(data) % 4 == 0 and len(data) % 2 != 0:
+                            samples = np__vad.frombuffer(data, dtype=np.float32)
+                            rms = float(np__vad.sqrt(np__vad.mean(samples**2)))
+                            voice_thresh = 0.015
+                            silence_thresh = 0.008
+                        else:
+                            samples = np__vad.frombuffer(data, dtype=np.int16).astype(np.float32) / 32768.0
+                            rms = float(np__vad.sqrt(np__vad.mean(samples**2)))
+                            voice_thresh = 500.0
+                            silence_thresh = 300.0
+                        if rms > voice_thresh:
                             user_idle = False
                         else:
                             if not user_idle and len(audio_buffer) > 0:
                                 elapsed = time.time() - last_activity
-                                if elapsed > 0.6 and rms < 300:
+                                if elapsed > 0.6 and rms < silence_thresh:
                                     _stream_ws_reply(ws, audio_buffer)
                                     audio_buffer.clear()
                                     user_idle = True
@@ -523,7 +533,10 @@ if SOCK_OK:
             model = get_whisper_model()
             if not model:
                 return
-            samples_np = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
+            if len(raw) % 4 == 0 and len(raw) != 0:
+                samples_np = np.frombuffer(raw, dtype=np.float32).clip(-1.0, 1.0)
+            else:
+                samples_np = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
             text = safe_transcribe(model, samples_np)
             if not text:
                 return
@@ -595,5 +608,7 @@ if __name__ == '__main__':
     server = pywsgi.WSGIServer(('127.0.0.1', 5700), ws_app, handler_class=WebSocketHandler)
     print(" [OK] WebSocket 就绪 (gevent)")
     server.serve_forever()
+
+
 
 
