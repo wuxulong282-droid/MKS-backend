@@ -70,7 +70,48 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
 
-# ── API Key 是否是默认占位值 ──
+def _find_ffmpeg():
+    global _FFMPEG_PATH
+    if _FFMPEG_PATH:
+        return _FFMPEG_PATH
+    # 1) where 命令（Windows专用）
+    try:
+        r = subprocess.run(['where', 'ffmpeg'],
+                           capture_output=True, text=True, timeout=5)
+        if r.returncode == 0:
+            p = r.stdout.strip().split('\n')[0].strip()
+            if p and os.path.isfile(p):
+                _FFMPEG_PATH = p
+                print(f"  [OK] ffmpeg: {p}")
+                return _FFMPEG_PATH
+    except: pass
+    # 2) 系统 PATH 直接试
+    try:
+        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)
+        if result.returncode == 0:
+            _FFMPEG_PATH = 'ffmpeg'
+            print("  [OK] ffmpeg 已安装 (PATH)")
+            return _FFMPEG_PATH
+    except: pass
+    # 3) WinGet 安装路径
+    import glob
+    for root in [os.path.expanduser('~\\AppData\\Local\\Microsoft\\WinGet\\Packages')]:
+        pattern = root + '\\Gyan.FFmpeg*\\ffmpeg-*\\bin\\ffmpeg.exe'
+        for fpath in glob.glob(pattern):
+            _FFMPEG_PATH = fpath
+            print(f"  [OK] ffmpeg: {fpath}")
+            return _FFMPEG_PATH
+    # 4) 其他常见路径
+    for p in ['C:\\ffmpeg\\bin\\ffmpeg.exe', 'C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe']:
+        if os.path.exists(p):
+            _FFMPEG_PATH = p
+            print(f"  [OK] ffmpeg: {p}")
+            return _FFMPEG_PATH
+    print("  [WARN] ffmpeg 未找到！语音识别将失败")
+    print("        请将 ffmpeg 加入系统 PATH 后重启")
+    return None
+
+
 def _is_default_key(key):
     """检查 API Key 是否还是默认占位值"""
     return not key or key.startswith("sk-") and any(ord(c) > 127 for c in key)
@@ -160,50 +201,54 @@ if SOCK_OK:
 
     @sock.route('/ws/voice')
     def voice(ws):
-        _ws_init()
-        print("[ws] 客户端已连接")
-        audio_buffer = collections.deque()
-        last_activity = time.time()
-        transcribing = False
-        user_idle = False
         try:
-            ws.send(json.dumps({"type": "status", "text": "connected"}))
-        except: pass
-        try:
-            while True:
-                try:
-                    data = ws.receive()
-                    if data is None:
-                        break
-                    if isinstance(data, bytes) and len(data) > 0:
-                        audio_buffer.append(data)
-                        last_activity = time.time()
-                        samples = struct.unpack_from('<' + 'h' * (len(data) // 2), data)
-                        rms = (sum(s*s for s in samples) / len(samples)) ** 0.5
-                        if rms > 500:
-                            user_idle = False
-                            transcribing = False
-                        else:
-                            if not transcribing and not user_idle and len(audio_buffer) > 0:
-                                elapsed = time.time() - last_activity
-                                if elapsed > 0.6 and rms < 300:
-                                    transcribing = True
-                                    _do_ws_transcribe(ws, audio_buffer)
-                                    audio_buffer.clear()
-                                    user_idle = True
-                    elif isinstance(data, str):
-                        try:
-                            msg = json.loads(data)
-                            if msg.get("type") == "ping":
-                                ws.send(json.dumps({"type": "pong"}))
-                        except: pass
-                except Exception as e:
-                    print("[ws] 接收错误:", e)
-                    break
-        finally:
-            try: ws.close()
+            _ws_init()
+            print("[ws] 客户端已连接")
+            audio_buffer = collections.deque()
+            last_activity = time.time()
+            transcribing = False
+            user_idle = False
+            try:
+                ws.send(json.dumps({"type": "status", "text": "connected"}))
             except: pass
-        print("[ws] 客户端已断开")
+            try:
+                while True:
+                    try:
+                        data = ws.receive()
+                        if data is None:
+                            break
+                        if isinstance(data, bytes) and len(data) > 0:
+                            audio_buffer.append(data)
+                            last_activity = time.time()
+                            samples = struct.unpack_from('<' + 'h' * (len(data) // 2), data)
+                            rms = (sum(s*s for s in samples) / len(samples)) ** 0.5
+                            if rms > 500:
+                                user_idle = False
+                                transcribing = False
+                            else:
+                                if not transcribing and not user_idle and len(audio_buffer) > 0:
+                                    elapsed = time.time() - last_activity
+                                    if elapsed > 0.6 and rms < 300:
+                                        transcribing = True
+                                        _do_ws_transcribe(ws, audio_buffer)
+                                        audio_buffer.clear()
+                                        user_idle = True
+                        elif isinstance(data, str):
+                            try:
+                                msg = json.loads(data)
+                                if msg.get("type") == "ping":
+                                    ws.send(json.dumps({"type": "pong"}))
+                            except: pass
+                    except Exception as e:
+                        import traceback
+                        traceback.print_exc()
+            finally:
+                try: ws.close()
+                except: pass
+            print("[ws] 客户端已断开")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
 
     def _do_ws_transcribe(ws, buf):
         global WS_QUEUE
@@ -222,8 +267,7 @@ if SOCK_OK:
             if WHISPER_OK and WS_WHISPER:
                 import numpy as np
                 samples_np = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
-                segments, _ = WS_WHISPER.transcribe(samples_np, language="zh", beam_size=1)
-                text = " ".join(seg.text for seg in segments).strip()
+                text = safe_transcribe(WS_WHISPER, samples_np)
             if text:
                 print("[ws] 识别:", text[:50])
                 try:
@@ -386,58 +430,74 @@ def get_whisper_model():
 
 
 def decode_audio_to_float32(audio_bytes: bytes):
-    """
-    把任意格式音频（webm/wav/mp4等）转为 Whisper 需要的
-    float32 numpy数组，采样率16kHz单声道
-    """
-    import wave
-    ffmpeg_path = _FFMPEG_PATH if _FFMPEG_PATH else 'ffmpeg'
-    if _FFMPEG_PATH is None:
-        print("[audio] ffmpeg 未安装，无法解码")
-        return None
-    # 判断格式
-    suffix = '.webm'
-    if audio_bytes[:4] == b'RIFF':
-        suffix = '.wav'
-
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
-        f.write(audio_bytes)
-        in_path = f.name
-
-    out_path = in_path + '_out.wav'
-
+    """把任意格式音频转为Whisper需要的float32数组(16kHz单声道)"""
     try:
-        # 用 ffmpeg 转为 16kHz 单声道 WAV
-        result = subprocess.run([
-            ffmpeg_path, '-y',
-            '-i', in_path,
-            '-ar', '16000',
-            '-ac', '1',
-            '-f', 'wav',
-            out_path
-        ], capture_output=True, timeout=10)
-
-        if result.returncode != 0:
-            print(f"[audio] ffmpeg 失败: {result.stderr.decode()}")
+        if len(audio_bytes) < 100:
+            print("[audio] 数据太短")
             return None
 
-        # 读取转换后的 WAV
-        with wave.open(out_path, 'rb') as wf:
-            frames = wf.readframes(wf.getnframes())
-            samples = np.frombuffer(frames, dtype=np.int16)
-            return samples.astype(np.float32) / 32768.0
+        suffix = '.wav' if audio_bytes[:4] == b'RIFF' else '.webm'
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
+            f.write(audio_bytes)
+            in_path = f.name
+        out_path = in_path + '_out.wav'
 
-    except subprocess.TimeoutExpired:
-        print("[audio] ffmpeg 超时")
-        return None
+        try:
+            ff_path = _FFMPEG_PATH if _FFMPEG_PATH else 'ffmpeg'
+            if _FFMPEG_PATH is None:
+                print("[audio] ffmpeg未安装，无法解码")
+                return None
+            result = subprocess.run(
+                [ff_path, '-y', '-i', in_path,
+                 '-ar', '16000', '-ac', '1', '-f', 'wav', out_path],
+                capture_output=True, timeout=15
+            )
+            if result.returncode != 0:
+                err = result.stderr.decode(errors='ignore')[:200]
+                print(f"[audio] ffmpeg失败: {err}")
+                return None
+
+            with open(out_path, 'rb') as wf_raw:
+                wav_data = wf_raw.read()
+
+            import wave, io
+            with wave.open(io.BytesIO(wav_data), 'rb') as wf:
+                frames = wf.readframes(wf.getnframes())
+                samples = np.frombuffer(frames, dtype=np.int16)
+                return samples.astype(np.float32) / 32768.0
+
+        except subprocess.TimeoutExpired:
+            print("[audio] ffmpeg超时")
+            return None
+        except Exception as e:
+            print(f"[audio] 解码异常: {e}")
+            return None
+        finally:
+            for p in [in_path, out_path]:
+                try: os.unlink(p)
+                except: pass
+
     except Exception as e:
-        print(f"[audio] 解码失败: {e}")
+        print(f"[audio] 解码顶层异常: {e}")
         return None
-    finally:
-        try: os.unlink(in_path)
-        except: pass
-        try: os.unlink(out_path)
-        except: pass
+
+def safe_transcribe(model, samples_np):
+    """安全的Whisper转写包装，任何异常返回空字符串"""
+    try:
+        if model is None or samples_np is None or len(samples_np) == 0:
+            return ""
+        segments, _ = model.transcribe(
+            samples_np,
+            language="zh",
+            beam_size=1,
+            vad_filter=True,
+            vad_parameters=dict(min_silence_duration_ms=300)
+        )
+        return "".join(seg.text for seg in segments).strip()
+    except Exception as e:
+        print(f"[ASR] 转写异常: {e}")
+        return ""
+
 
 
 def transcribe_audio(pcm_data: bytes, sample_rate: int) -> str:
@@ -452,17 +512,7 @@ def transcribe_audio(pcm_data: bytes, sample_rate: int) -> str:
         if model is None:
             return ""
         audio_array = np.frombuffer(pcm_data, dtype=np.int16).astype(np.float32) / 32768.0
-        segments, _ = model.transcribe(
-            audio_array,
-            language="zh",
-            beam_size=1,
-            vad_filter=True,
-            vad_parameters=dict(
-                min_silence_duration_ms=400,
-                speech_pad_ms=200
-            )
-        )
-        text = "".join([s.text for s in segments]).strip()
+        text = safe_transcribe(model, audio_array)
         dt = _t.time() - _t0
         print(f"[ASR] 识别结果 ({dt:.2f}s): {text[:60]}")
         return text
@@ -713,17 +763,11 @@ def chat_voice():
         if not model:
             return jsonify({"reply": "语音识别模型未加载", "audio": None, "error": None})
 
-        segments, info = model.transcribe(
-            samples_np,
-            language="zh",
-            beam_size=1,
-            vad_filter=True,
-            vad_parameters=dict(min_silence_duration_ms=300)
-        )
-        text = "".join(seg.text for seg in segments).strip()
+        text = safe_transcribe(model, samples_np)
         print(f"[chat_voice] 识别结果: '{text}'")
 
-        if not text:            return jsonify({"reply": "未识别到语音内容", "audio": None, "error": None})
+        if not text:
+            return jsonify({"reply": "未识别到语音内容", "audio": None, "error": None})
         print(f"[chat_voice] 识别结果: {text[:50]}")
         reply = call_deepseek(text, history)
         if not reply:
@@ -744,14 +788,15 @@ def chat_voice():
 # ── TTS 接口 ──
 @app.route('/tts', methods=['POST'])
 def tts():
-    data = request.json
-    text = data.get('text', '').strip()
-    if not text:
-        return jsonify({"error": "文字不能为空"}), 400
     try:
+        data = request.json
+        if not data or not data.get('text', '').strip():
+            return jsonify({"error": "文字不能为空"}), 400
+        text = data.get('text', '').strip()
         audio_b64 = asyncio.run(generate_tts(text))
         return jsonify({"audio": audio_b64, "error": None})
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 def clean_text_for_tts(text: str) -> str:
