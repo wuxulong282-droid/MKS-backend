@@ -575,11 +575,11 @@ if SOCK_OK:
 if __name__ == '__main__':
     print("=" * 40)
     print(" [MKS] Marx Agent v3")
-    print(" URL: http://localhost:5000")
+    print(" URL: http://localhost:5800")
     if DEEPSEEK_API_KEY:
         print(" [OK] DeepSeek API Key ready")
     else:
         print(" [WARN] DeepSeek API Key not configured!")
     print(" [..] 所有资源第一次使用时才加载")
     print("=" * 40)
-    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
+    app.run(host='127.0.0.1', port=5800, debug=False, use_reloader=False)
