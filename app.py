@@ -26,7 +26,8 @@ import subprocess
 import threading
 
 from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
+from gevent import pywsgi
+from geventwebsocket.handler import WebSocketHandler
 
 # ── API Key 是否是默认占位值 ──
 def _is_default_key(key):
@@ -71,17 +72,12 @@ try:
 except ImportError:
     pass
 
-try:
-    from flask_sock import Sock
-    SOCK_OK = True
-except ImportError:
-    pass
+# WebSocket 支持
+SOCK_OK = True
 
 app_dir = pathlib.Path(__file__).parent.resolve()
 frontend_dir = os.path.join(app_dir, 'frontend')
 app = Flask(__name__, static_folder=frontend_dir, static_url_path='')
-CORS(app)
-
 # ============================================================
 # 配置区
 # ============================================================
@@ -326,6 +322,13 @@ async def generate_tts(text):
 # ============================================================
 # 路由
 # ============================================================
+@app.after_request
+def add_cors(resp):
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    resp.headers['Access-Control-Allow-Methods'] = 'GET,POST'
+    return resp
+
 @app.route('/')
 def index():
     try:
@@ -451,16 +454,22 @@ def test_tts():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
-# ── WebSocket（极简版本，不触发任何资源加载） ──
+# ── WebSocket（gevent 原生支持，不依赖 flask_sock） ──
 if SOCK_OK:
-    sock = Sock(app)
     import collections
     import struct as _struct
 
-    @sock.route('/ws/voice')
-    def voice(ws):
+    def ws_app(environ, start_response):
+        """WSGI应用：拦截 /ws/voice 的 WebSocket 升级请求"""
+        if environ.get('PATH_INFO') == '/ws/voice':
+            ws = environ['wsgi.websocket']
+            handle_websocket(ws)
+            return []
+        return app(environ, start_response)
+
+    def handle_websocket(ws):
+        """处理 /ws/voice 的 WebSocket 连接"""
         try:
-            _ws_init()
             ws.send(json.dumps({"type": "status", "text": "connected"}))
             audio_buffer = collections.deque()
             last_activity = time.time()
@@ -485,9 +494,12 @@ if SOCK_OK:
                                     audio_buffer.clear()
                                     user_idle = True
                     elif isinstance(data, str):
-                        msg = json.loads(data)
-                        if msg.get("type") == "ping":
-                            ws.send(json.dumps({"type": "pong"}))
+                        try:
+                            msg = json.loads(data)
+                            if msg.get("type") == "ping":
+                                ws.send(json.dumps({"type": "pong"}))
+                        except:
+                            pass
                 except Exception:
                     break
         except Exception as e:
@@ -496,9 +508,8 @@ if SOCK_OK:
             try: ws.close()
             except: pass
 
+    # 注册 WS 路由到 Flask（gevent 接管）
     _WS_QUEUE = 0
-    def _ws_init():
-        pass
 
     def _stream_ws_reply(ws, buf):
         global _WS_QUEUE
@@ -517,7 +528,6 @@ if SOCK_OK:
             if not text:
                 return
             ws.send(json.dumps({"type": "transcript", "text": text}))
-            # 流式分句回复
             asyncio.run(_ws_stream_deepseek(ws, text))
         except Exception as e:
             print(f"[ws] 转写错误: {e}")
@@ -575,11 +585,13 @@ if SOCK_OK:
 if __name__ == '__main__':
     print("=" * 40)
     print(" [MKS] Marx Agent v3")
-    print(" URL: http://localhost:5800")
+    print(" URL: http://localhost:5700")
     if DEEPSEEK_API_KEY:
         print(" [OK] DeepSeek API Key ready")
     else:
         print(" [WARN] DeepSeek API Key not configured!")
     print(" [..] 所有资源第一次使用时才加载")
     print("=" * 40)
-    app.run(host='127.0.0.1', port=5800, debug=False, use_reloader=False)
+    server = pywsgi.WSGIServer(('127.0.0.1', 5700), ws_app, handler_class=WebSocketHandler)
+    print(" [OK] WebSocket 就绪 (gevent)")
+    server.serve_forever()
