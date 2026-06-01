@@ -145,13 +145,13 @@ if SOCK_OK:
                         last_activity = time.time()
                         samples = struct.unpack_from('<' + 'h' * (len(data) // 2), data)
                         rms = (sum(s*s for s in samples) / len(samples)) ** 0.5
-                        if rms > 200:
+                        if rms > 500:
                             user_idle = False
                             transcribing = False
                         else:
                             if not transcribing and not user_idle and len(audio_buffer) > 0:
                                 elapsed = time.time() - last_activity
-                                if elapsed > 1.5 and rms < 50:
+                                if elapsed > 0.6 and rms < 300:
                                     transcribing = True
                                     _do_ws_transcribe(ws, audio_buffer)
                                     audio_buffer.clear()
@@ -194,19 +194,7 @@ if SOCK_OK:
                 try:
                     ws.send(json.dumps({"type": "transcript", "text": text}))
                 except: pass
-                reply = call_deepseek(text, [])
-                if reply:
-                    try:
-                        ws.send(json.dumps({"type": "status", "text": "speaking"}))
-                    except: pass
-                    try:
-                        audio_b64 = asyncio.run(generate_tts(reply))
-                        if audio_b64:
-                            try:
-                                ws.send(json.dumps({"type": "answer", "audio": audio_b64}))
-                            except: pass
-                    except Exception as e:
-                        print("[ws] TTS 失败:", e)
+                asyncio.run(stream_reply_with_tts(ws, text, []))
             else:
                 try:
                     ws.send(json.dumps({"type": "status", "text": "未检测到语音"}))
@@ -219,6 +207,101 @@ if SOCK_OK:
         finally:
             WS_QUEUE -= 1
 
+async def stream_reply_with_tts(ws, text_input, history):
+    """流式分句：DeepSeek 流式输出，每句话实时 TTS 推送"""
+    try:
+        ws.send(json.dumps({"type": "status", "text": "thinking"}))
+    except:
+        pass
+    messages = [{"role": "system", "content": MARX_SYSTEM_PROMPT}]
+    if history:
+        messages.extend(history[-(6 * 2):])
+    messages.append({"role": "user", "content": text_input})
+    headers = {
+        "Authorization": "Bearer " + DEEPSEEK_API_KEY,
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": MODEL_NAME,
+        "messages": messages,
+        "temperature": 0.75,
+        "max_tokens": 400,
+        "top_p": 0.9,
+        "presence_penalty": 0.3,
+        "stream": True
+    }
+    reply_so_far = ""
+    sentence_buf = ""
+    try:
+        ws.send(json.dumps({"type": "status", "text": "speaking"}))
+    except:
+        pass
+    try:
+        with requests.post(DEEPSEEK_API_URL, headers=headers, json=payload, stream=True, timeout=30) as resp:
+            resp.raise_for_status()
+            for line in resp.iter_lines():
+                if not line or not line.startswith(b"data: "):
+                    continue
+                chunk_raw = line[6:]
+                if chunk_raw == b"[DONE]":
+                    break
+                try:
+                    delta = json.loads(chunk_raw)["choices"][0]["delta"].get("content", "")
+                except:
+                    continue
+                if not delta:
+                    continue
+                sentence_buf += delta
+                reply_so_far += delta
+                # 遇到句子结束符，切句推送
+                if any(c in delta for c in "。！？…\n"):
+                    sentence = sentence_buf.strip()
+                    sentence_buf = ""
+                    if sentence:
+                        try:
+                            ws.send(json.dumps({"type": "transcript_reply", "text": sentence}))
+                        except:
+                            pass
+                        try:
+                            audio = await generate_tts(sentence)
+                            if audio:
+                                try:
+                                    ws.send(json.dumps({
+                                        "type": "audio_chunk",
+                                        "audio": audio,
+                                        "text": sentence
+                                    }))
+                                except:
+                                    pass
+                        except Exception as e:
+                            print("[ws] 分句TTS失败:", e)
+        # 处理最后剩余的一句（没有句号结尾的尾巴）
+        if sentence_buf.strip():
+            sentence = sentence_buf.strip()
+            try:
+                ws.send(json.dumps({"type": "transcript_reply", "text": sentence}))
+            except:
+                pass
+            try:
+                audio = await generate_tts(sentence)
+                if audio:
+                    try:
+                        ws.send(json.dumps({
+                            "type": "audio_chunk",
+                            "audio": audio,
+                            "text": sentence
+                        }))
+                    except:
+                        pass
+            except Exception as e:
+                print("[ws] 末句TTS失败:", e)
+    except Exception as e:
+        print("[ws] DeepSeek流式调用失败:", e)
+    try:
+        ws.send(json.dumps({"type": "done", "full_text": reply_so_far}))
+    except:
+        pass
+
 def _ws_send_json(ws, obj):
     """线程安全WebSocket JSON发送"""
     try:
@@ -228,7 +311,11 @@ def _ws_send_json(ws, obj):
 
 # ── ASR 模型（懒加载） ──
 WHISPER_MODEL = None
-WHISPER_DEVICE = "unknown"
+import torch
+if torch.cuda.is_available():
+    WHISPER_DEVICE = "cuda"
+else:
+    WHISPER_DEVICE = "cpu"
 
 def get_whisper_model():
     """
@@ -239,19 +326,27 @@ def get_whisper_model():
     if WHISPER_MODEL is not None:
         return WHISPER_MODEL
     import torch
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    compute = "float16" if device == "cuda" else "int8"
-    WHISPER_DEVICE = device
-    if device == "cuda":
+    if torch.cuda.is_available():
+        device = "cuda"
+        compute_type = "float16"
         torch.cuda.set_per_process_memory_fraction(0.55)
+        gpu_name = torch.cuda.get_device_name(0)
+        gpu_mem = torch.cuda.get_device_properties(0).total_memory // 1024**3
+        print(f"[ASR] GPU可用: {gpu_name}")
+        print(f"[ASR] 显存: {gpu_mem}GB")
         print(f"[ASR] GPU 显存限制: 55%")
-    print(f"[ASR] 加载 faster-whisper small，设备 {device}，精度 {compute}")
+    else:
+        device = "cpu"
+        compute_type = "int8"
+        print("[ASR] GPU不可用，使用CPU")
+    WHISPER_DEVICE = device
+    print(f"[ASR] 加载 faster-whisper small，设备 {device}，精度 {compute_type}")
     WHISPER_MODEL = WhisperModel(
         "small",
         device=device,
-        compute_type=compute
+        compute_type=compute_type
     )
-    print(f"[ASR] faster-whisper 加载完成（{device}）")
+    print(f"[ASR] 加载完成，device={device}")
     return WHISPER_MODEL
 
 def transcribe_audio(pcm_data: bytes, sample_rate: int) -> str:
@@ -337,7 +432,15 @@ MARX_SYSTEM_PROMPT = """你是卡尔·马克思（Karl Marx，1818-1883），哲
 - 不说"作为AI"、"作为语言模型"
 - 不说"好的"、"当然"、"很高兴为您解答！"
 - 不确定引文时说"我的大意是..."而非假装精确引用
-- 禁止Markdown标记，禁止括号动作描述"""
+- 禁止Markdown标记，禁止括号动作描述
+
+【语音对话模式】
+当用户以语音方式提问时，回答必须：
+- 不超过2句话，每句不超过25字
+- 用口语化表达，像真实对话
+- 不用书面语、不用列举条目
+- 可以用反问结尾引发思考
+- 绝对不能有任何标点以外的特殊符号"""
 
 @app.route('/')
 def index():
@@ -361,7 +464,9 @@ def health():
         "status": "running",
         "model": MODEL_NAME,
         "voice": VOICE_NAME,
-        "gpu": gpu_info
+        "gpu": gpu_info,
+        "asr_device": WHISPER_DEVICE,
+        "cuda_available": str(torch.cuda.is_available())
     })
 
 @app.route('/test')
@@ -687,6 +792,11 @@ if __name__ == '__main__':
         print("  [OK] DeepSeek API Key ready")
     if WHISPER_OK:
         print("  [OK] faster-whisper installed")
+        print("  [..] Loading ASR model...")
+        try:
+            get_whisper_model()
+        except Exception as e:
+            print(f"  [WARN] ASR 加载失败: {e}")
     else:
         print("  [WARN] faster-whisper missing")
     print("  [..] Prewarming TTS cache...")
@@ -696,4 +806,4 @@ if __name__ == '__main__':
     if SOCK_OK:
         print("  [OK] WebSocket ready (simple-websocket)")
     print("=" * 55)
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
