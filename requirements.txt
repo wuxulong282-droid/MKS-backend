@@ -1,0 +1,19 @@
+# ===== CUDA PyTorch（请用 backend/install_cuda.bat 单独安装）=====
+# torch>=2.1
+# torchvision>=0.16
+# torchaudio>=2.1
+
+# ===== 核心依赖 =====
+flask>=3.0
+flask-cors>=4.0
+requests>=2.31
+flask-sock>=0.7
+
+# ===== 语音相关 =====
+edge-tts>=7.0
+pyttsx3>=2.99  # 本地 TTS 引擎，EdgeTTS 失败时自动兜底
+faster-whisper>=1.0
+webrtcvad-wheels>=2.0
+
+# ===== 数据处理 =====
+numpy>=1.26
