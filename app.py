@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 马克思人格智能体 — 后端服务 v3（崩溃保护版）
 
@@ -162,8 +162,8 @@ def decode_audio_to_float32(audio_bytes):
     try:
         if len(audio_bytes) < 100:
             return None
-        ff = find_ffmpeg()
-        if not ff:
+        ff = r'C:\Users\武旭龙\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg.Essentials_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-essentials_build\bin\ffmpeg.exe'
+        if not os.path.isfile(ff):
             print("[audio] ffmpeg未安装")
             return None
         suffix = '.wav' if audio_bytes[:4] == b'RIFF' else '.webm'
@@ -595,3 +595,5 @@ if __name__ == '__main__':
     server = pywsgi.WSGIServer(('127.0.0.1', 5700), ws_app, handler_class=WebSocketHandler)
     print(" [OK] WebSocket 就绪 (gevent)")
     server.serve_forever()
+
+
