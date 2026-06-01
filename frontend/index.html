@@ -102,7 +102,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-seri
 .lv-header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--border)}
 .lv-back{background:none;border:none;color:var(--gold);font-size:14px;cursor:pointer;font-family:inherit;padding:4px 0}
 .lv-title{font-size:14px;font-weight:500;color:var(--text-dim)}
-.lv-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto;gap:6px}
+.lv-body{flex:1;display:flex;flex-direction:column;align-items:center;padding:14px 10px;overflow-y:auto;gap:6px}
 .lv-avatar{width:80px;height:80px;border-radius:50%;border:2px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;margin-bottom:8px}
 .lv-avatar img{width:100%;height:100%;object-fit:cover}
 .lv-wave{width:240px;height:64px;flex-shrink:0;margin-bottom:10px}
@@ -112,6 +112,9 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-seri
 .lv-status.speaking{color:#6a9}
 .lv-trans{font-size:13px;color:var(--text);text-align:center;max-width:90%;padding:6px 14px;background:var(--marx-bg);border-radius:10px;border:1px solid var(--border);display:none}
 .lv-trans.show{display:block}
+.lv-chat{display:none;width:100%;max-height:200px;overflow-y:auto;padding:4px 12px;margin-top:6px}
+.lv-chat.show{display:block}
+.lv-bubble{font-size:14px;line-height:1.6;color:var(--text);padding:8px 12px;background:var(--marx-bg);border-radius:10px;border:1px solid var(--border);margin-bottom:6px;text-align:left;white-space:pre-wrap;word-break:break-word}
 .lv-footer{flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--surface);border-top:1px solid var(--border)}
 .lv-mic{width:64px;height:64px;border-radius:50%;background:var(--red);border:3px solid var(--red-light);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;color:white;flex-shrink:0}
 .lv-mic:active{transform:scale(.92)}
@@ -189,13 +192,14 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-seri
     <span class="lv-title">语音对话</span>
     <span style="width:60px"></span>
   </div>
-  <div class="lv-body">
+  <div class="lv-body" id="lvBody">
     <div class="lv-avatar">
       <img src="marx-avatar.png?v=2">
     </div>
     <canvas class="lv-wave" id="lvWave"></canvas>
     <div class="lv-status" id="lvStatus">点击麦克风开始</div>
     <div class="lv-trans" id="lvTrans"></div>
+    <div class="lv-chat" id="lvChat"></div>
   </div>
   <div class="lv-footer">
     <button class="lv-mic" id="lvMic" onclick="toggleLiveMic(this)">
@@ -224,6 +228,11 @@ let liveRecorderChunks = [];
 let livePollTimer = null;
 let liveVADCtx = null;
 let liveStream = null;
+
+// 流式音频队列
+let liveAudioQueue = [];
+let liveAudioPlaying = false;
+let liveReplyEl = null;
 
 
 fetch(API + '/health').then(r=>r.json()).then(()=>{ge('dot').style.background='#4a9'}).catch(()=>{ge('dot').style.background='#c04'});
@@ -517,6 +526,15 @@ function startLiveMic(btn) {
   var stream = null;
   var pollTimer = null;
 
+  // 重置流式对话状态
+  liveReplyEl = null;
+  liveAudioQueue = [];
+  liveAudioPlaying = false;
+  var chatBox = document.getElementById('lvChat');
+  if (chatBox) chatBox.innerHTML = '';
+  ge('lvTrans').className = 'lv-trans';
+  ge('lvTrans').textContent = '';
+
   (async function() {
     try {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -541,101 +559,138 @@ function startLiveMic(btn) {
 
       startLiveWave('user');
 
-      // 轮询循环：每500ms 检测音量
-      pollTimer = setInterval(function() {
-        if (!pollRunning || sending) return;
+      // ── 建立 WebSocket 连接 ──
+      var wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      var wsUrl = wsProto + '//' + window.location.host + '/ws/voice';
+      var ws = new WebSocket(wsUrl);
+      liveWS = ws;
 
-        // 获取当前音量
-        analyser.getByteTimeDomainData(dataArray);
-        var sum = 0;
-        for (var i = 0; i < dataArray.length; i++) {
-          var v = (dataArray[i] - 128) / 128;
-          sum += v * v;
+      ws.onopen = function() {
+        console.log('[liveWS] 已连接');
+      };
+
+      ws.onmessage = function(evt) {
+        try {
+          var d = JSON.parse(evt.data);
+
+          if (d.type === 'transcript_reply') {
+            appendLiveReply(d.text);
+          }
+
+          if (d.type === 'audio_chunk') {
+            queueLiveAudio(d.audio);
+          }
+
+          if (d.type === 'done') {
+            setLiveStatus('正在聆听...', 'listening');
+            startLiveWave('idle');
+            // 把完整回复写入对话历史
+            if (d.full_text) {
+              addTS();
+              var transcript = ge('lvTrans');
+              if (transcript) { transcript.textContent = d.full_text; transcript.className = 'lv-trans show'; }
+              aM('user', '🎤 语音消息');
+              aM('marx', d.full_text);
+              if (hist) {
+                hist.push({role:'user',content:'🎤 语音消息'});
+                hist.push({role:'assistant',content:d.full_text});
+              }
+              scrollB();
+            }
+          }
+
+          if (d.type === 'transcript') {
+            // 已识别文字（旧消息，保持兼容）
+            console.log('[liveWS] 识别:', d.text);
+            setLiveStatus('已识别: ' + d.text, 'thinking');
+          }
+
+          if (d.type === 'answer') {
+            // 旧版完整音频（保持兼容）
+            if (d.audio) {
+              queueLiveAudio(d.audio);
+            }
+          }
+
+          if (d.type === 'status') {
+            setLiveStatus(d.text, '');
+          }
+
+          if (d.type === 'error') {
+            console.error('[liveWS] 错误:', d.text);
+            setLiveStatus('错误: ' + d.text, '');
+          }
+
+          if (d.type === 'pong') {
+            // 心跳回复，无需处理
+          }
+        } catch(e) {
+          console.error('[liveWS] 解析失败:', e, evt.data);
         }
-        var rms = Math.sqrt(sum / dataArray.length);
-        var hasVoice = rms > 0.03; // 语音阈值
+      };
 
-        console.log('[liveVAD] rms=' + rms.toFixed(3) + ' hasVoice=' + hasVoice + ' speaking=' + vadSpeaking + ' chunks=' + audioChunks.length);
+      ws.onclose = function() {
+        console.log('[liveWS] 已断开');
+        if (liveWS === ws) liveWS = null;
+      };
+
+      ws.onerror = function(e) {
+        console.error('[liveWS] 连接错误:', e);
+        setLiveStatus('WebSocket连接失败，使用HTTP', '');
+        // 降级：ws 不可用时 fallback 到 HTTP
+      };
+
+      // ── 用 WebSocket 发送16kHz PCM 数据 ──
+      // 用 ScriptProcessorNode 采集16kHz PCM
+      var scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
+      src.connect(scriptNode);
+      scriptNode.connect(audioCtx.destination);
+
+      scriptNode.onaudioprocess = function(ae) {
+        if (!pollRunning || !ws || ws.readyState !== WebSocket.OPEN) return;
+        var input = ae.inputBuffer.getChannelData(0);
+        // 降采样到16kHz
+        var step = Math.round(audioCtx.sampleRate / 16000);
+        var pcm = new Int16Array(Math.ceil(input.length / step));
+        var rmsSum = 0;
+        for (var i = 0, j = 0; i < input.length; i += step, j++) {
+          var s = Math.max(-1, Math.min(1, input[i]));
+          pcm[j] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+          rmsSum += s * s;
+        }
+        var rms = Math.sqrt(rmsSum / pcm.length);
+
+        // 发送 PCM 数据到 WebSocket
+        try {
+          ws.send(pcm.buffer);
+        } catch(e) {}
+
+        // 本地 VAD 检测（用于 UI 反馈）
+        var hasVoice = rms > 500 / 32768;
 
         if (hasVoice && !vadSpeaking) {
-          // 开始说话
-          console.log('[liveVAD] -> SPEAKING');
           vadSpeaking = true;
           vadSilentStart = 0;
           setLiveStatus('正在听您说话...', 'listening');
           startLiveWave('user');
         } else if (!hasVoice && vadSpeaking) {
-          // 安静中
           if (vadSilentStart === 0) {
             vadSilentStart = Date.now();
             console.log('[liveVAD] -> silent start');
           } else if (Date.now() - vadSilentStart > 2000) {
-            // 安静2秒，发送
-            console.log('[liveVAD] -> SEND! chunks=' + audioChunks.length);
             vadSpeaking = false;
             vadSilentStart = 0;
-            sending = true;
-            setLiveStatus('正在识别...', 'thinking');
+            setLiveStatus('等待回答...', 'thinking');
             startLiveWave('idle');
-
-            // 发送音频
-            (async function() {
-              try {
-                if (audioChunks.length === 0) { sending = false; return; }
-                var bl = new Blob(audioChunks, { type: 'audio/webm' });
-                audioChunks = [];
-                if (bl.size < 2000) { sending = false; return; }
-
-                console.log('[liveVAD] sending raw webm... len:', bl.size);
-                // 直接发 webm base64，后端用 ffmpeg 转码
-                var reader = new FileReader();
-                var liveB64 = await new Promise(function(res, rej) {
-                  reader.onload = function() { res(reader.result.split(',')[1]); };
-                  reader.onerror = rej;
-                  reader.readAsDataURL(bl);
-                });
-
-                console.log('[liveVAD] sending... b64 len:', b64.length);
-                var r = await fetch(API + '/chat_voice', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ audio_b64: liveB64, history: [], tts: true })
-                });
-                var d = await r.json();
-                if (d.error) throw new Error(d.error);
-
-                console.log('[liveVAD] reply:', d.reply ? d.reply.substring(0, 40) : 'empty');
-                if (d.reply) {
-                  var el = document.getElementById('lvTrans');
-                  if (el) { el.textContent = d.reply; el.className = 'lv-trans show'; }
-                  if (d.audio) {
-                    setLiveStatus('正在播放...', 'speaking');
-                    playLiveAudio(d.audio);
-                  } else {
-                    setLiveStatus('聊听中...', 'listening');
-                  }
-                  addTS();
-                  aM('user', '🎤 语音消息');
-                  aM('marx', d.reply);
-                  if (hist) { hist.push({role:'user',content:d.reply.substring(0,20)}); hist.push({role:'assistant',content:d.reply}); }
-                  scrollB();
-                }
-                setLiveStatus('聊听中...', 'listening');
-              } catch(e) {
-                console.error('[liveVAD] error:', e);
-                setLiveStatus('识别失败', '');
-              }
-              sending = false;
-            })();
           }
         } else if (hasVoice && vadSpeaking) {
-          // 正在说话，重置安静计时器
           vadSilentStart = 0;
         } else if (!hasVoice && !vadSpeaking) {
-          // 两者都安静
           vadSilentStart = 0;
         }
-      }, 500);
+      };
+
+      liveScriptNode = scriptNode;
 
       // 保存变量
       livePollTimer = pollTimer;
@@ -657,7 +712,18 @@ function stopLiveMic() {
   if (liveRecorder && liveRecorder.state !== 'inactive') { try { liveRecorder.stop(); } catch(e) {} }
   if (liveStream) { try { liveStream.getTracks().forEach(function(t){t.stop();}); } catch(e) {}}
   if (liveVADCtx) { try { liveVADCtx.close(); } catch(e) {} }
+  if (liveScriptNode) { try { liveScriptNode.disconnect(); } catch(e) {} }
+  // 关闭 WebSocket
+  if (liveWS) {
+    try { liveWS.close(); } catch(e) {}
+    liveWS = null;
+  }
+  // 清空音频队列
+  liveAudioQueue = [];
+  liveAudioPlaying = false;
+  liveReplyEl = null;
   liveRecorder = null;
+  liveScriptNode = null;
   liveVADCtx = null;
   liveStream = null;
   var btn = document.getElementById('lvMic');
@@ -708,6 +774,60 @@ function stopLiveWave() {
 }
 
 var liveAudio = null;
+// ── 流式对话：追加回复文字 ──
+function appendLiveReply(text) {
+  if (!liveReplyEl) {
+    var chatBox = document.getElementById('lvChat');
+    if (!chatBox) return;
+    liveReplyEl = document.createElement('div');
+    liveReplyEl.className = 'lv-bubble marx';
+    chatBox.appendChild(liveReplyEl);
+    chatBox.classList.add('show');
+  }
+  liveReplyEl.textContent += text;
+  var body = document.getElementById('lvBody');
+  if (body) body.scrollTop = body.scrollHeight;
+}
+
+// ── 流式音频队列 ──
+function queueLiveAudio(b64) {
+  liveAudioQueue.push(b64);
+  if (!liveAudioPlaying) {
+    consumeLiveAudioQueue();
+  }
+}
+
+function consumeLiveAudioQueue() {
+  if (liveAudioQueue.length === 0) {
+    liveAudioPlaying = false;
+    return;
+  }
+  liveAudioPlaying = true;
+  var b64 = liveAudioQueue.shift();
+  var url = base64ToBlobUrl(b64);
+  if (!url) {
+    console.error('[liveAudio] Blob URL失败');
+    consumeLiveAudioQueue();
+    return;
+  }
+  var au = new Audio(url);
+  setLiveStatus('正在说话...', 'speaking');
+  startLiveWave('marx');
+  au.onended = function() {
+    URL.revokeObjectURL(url);
+    consumeLiveAudioQueue();
+  };
+  au.onerror = function() {
+    URL.revokeObjectURL(url);
+    consumeLiveAudioQueue();
+  };
+  au.play().catch(function(e) {
+    console.error('[liveAudio] 播放失败:', e);
+    URL.revokeObjectURL(url);
+    consumeLiveAudioQueue();
+  });
+}
+
 function playLiveAudio(b64) {
   if (liveAudio) { try { liveAudio.pause(); } catch(e) {} liveAudio = null; }
   var url = base64ToBlobUrl(b64);
@@ -718,7 +838,6 @@ function playLiveAudio(b64) {
   au.onended = function() { URL.revokeObjectURL(au._url); liveAudio = null; };
   au.play().catch(function(e) { console.error('[liveAudio] play失败:', e); URL.revokeObjectURL(au._url); liveAudio = null; });
 }
-
 // === + 面板 ===
 ge('pbtn').onclick = function() {
   var p = ge('ppanel'), o = ge('pover'), s = !p.classList.contains('show');
