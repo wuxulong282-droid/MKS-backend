@@ -23,6 +23,41 @@ import time
 import traceback
 import pathlib
 import tempfile
+import subprocess
+
+# ── 查找 ffmpeg ──
+_FFMPEG_PATH = None
+def _find_ffmpeg():
+    global _FFMPEG_PATH
+    if _FFMPEG_PATH:
+        return _FFMPEG_PATH
+    # 1) 先试系统 PATH
+    try:
+        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)
+        if result.returncode == 0:
+            _FFMPEG_PATH = 'ffmpeg'
+            print("  [OK] ffmpeg 已安装 (PATH)")
+            return _FFMPEG_PATH
+    except: pass
+    # 2) 检查常见的 WinGet 安装路径
+    import glob
+    for root in [os.path.expanduser('~\\AppData\\Local\\Microsoft\\WinGet\\Packages')]:
+        pattern = root + '\\Gyan.FFmpeg*\\ffmpeg-*\\bin\\ffmpeg.exe'
+        for f in glob.glob(pattern):
+            _FFMPEG_PATH = f
+            print(f"  [OK] ffmpeg 已安装: {f}")
+            return _FFMPEG_PATH
+    # 3) 其他常见路径
+    for p in ['C:\\ffmpeg\\bin\\ffmpeg.exe', 'C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe']:
+        if os.path.exists(p):
+            _FFMPEG_PATH = p
+            print(f"  [OK] ffmpeg 已安装: {p}")
+            return _FFMPEG_PATH
+    print("  [WARN] ffmpeg 未找到！语音识别将失败")
+    print("        请将 ffmpeg 加入系统 PATH 后重启")
+    return None
+
+_find_ffmpeg()
 
 # 从 .env 文件加载环境变量
 try:
@@ -349,6 +384,62 @@ def get_whisper_model():
     print(f"[ASR] 加载完成，device={device}")
     return WHISPER_MODEL
 
+
+def decode_audio_to_float32(audio_bytes: bytes):
+    """
+    把任意格式音频（webm/wav/mp4等）转为 Whisper 需要的
+    float32 numpy数组，采样率16kHz单声道
+    """
+    import wave
+    ffmpeg_path = _FFMPEG_PATH if _FFMPEG_PATH else 'ffmpeg'
+    if _FFMPEG_PATH is None:
+        print("[audio] ffmpeg 未安装，无法解码")
+        return None
+    # 判断格式
+    suffix = '.webm'
+    if audio_bytes[:4] == b'RIFF':
+        suffix = '.wav'
+
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
+        f.write(audio_bytes)
+        in_path = f.name
+
+    out_path = in_path + '_out.wav'
+
+    try:
+        # 用 ffmpeg 转为 16kHz 单声道 WAV
+        result = subprocess.run([
+            ffmpeg_path, '-y',
+            '-i', in_path,
+            '-ar', '16000',
+            '-ac', '1',
+            '-f', 'wav',
+            out_path
+        ], capture_output=True, timeout=10)
+
+        if result.returncode != 0:
+            print(f"[audio] ffmpeg 失败: {result.stderr.decode()}")
+            return None
+
+        # 读取转换后的 WAV
+        with wave.open(out_path, 'rb') as wf:
+            frames = wf.readframes(wf.getnframes())
+            samples = np.frombuffer(frames, dtype=np.int16)
+            return samples.astype(np.float32) / 32768.0
+
+    except subprocess.TimeoutExpired:
+        print("[audio] ffmpeg 超时")
+        return None
+    except Exception as e:
+        print(f"[audio] 解码失败: {e}")
+        return None
+    finally:
+        try: os.unlink(in_path)
+        except: pass
+        try: os.unlink(out_path)
+        except: pass
+
+
 def transcribe_audio(pcm_data: bytes, sample_rate: int) -> str:
     """
     用 PCM 音频数据 + faster-whisper 转为文字
@@ -608,73 +699,31 @@ def chat_voice():
         return jsonify({"error": "音频为空"}), 400
     try:
         audio_bytes = base64.b64decode(audio_b64)
-        print(f"[chat_voice] 收到音频，大小: {len(audio_bytes)} bytes")
+        print(f"[chat_voice] 收到音频 {len(audio_bytes)} bytes")
+
+        # 统一音频解码：ffmpeg 转 16kHz 单声道 float32
+        samples_np = decode_audio_to_float32(audio_bytes)
+        if samples_np is None or len(samples_np) < 1600:
+            print("[chat_voice] 音频解码失败或过短")
+            return jsonify({"reply": "音频解码失败，请重试", "audio": None, "error": None})
+
+        print(f"[chat_voice] 解码成功，样本数: {len(samples_np)}, 时长: {len(samples_np)/16000:.1f}s")
+
         model = get_whisper_model()
-        text = ""
-        if model:
-            import numpy as np
-            if audio_bytes.startswith(b'RIFF'):
-                import soundfile as sf
-                import io
-                data_np, sr = sf.read(io.BytesIO(audio_bytes))
-                if sr != 16000:
-                    from scipy import signal
-                    if len(data_np) > 0:
-                        new_len = int(len(data_np) * 16000 / sr)
-                        data_np = signal.resample(data_np, new_len)
-                if len(data_np.shape) > 1:
-                    data_np = data_np.mean(axis=1)
-                rms_val = np.sqrt(np.mean(data_np.astype(np.float32)**2))
-                print(f"[chat_voice] WAV rms: {rms_val:.4f}")
-                if rms_val >= 0.01:
-                    segments, _ = model.transcribe(data_np.astype(np.float32), language="zh", beam_size=1, no_speech_threshold=0.8, log_prob_threshold=-1.0, compression_ratio_threshold=2.0)
-                    text = " ".join(seg.text for seg in segments).strip()
-                else:
-                    print(f"[chat_voice] WAV 能量过低({rms_val:.4f})，跳过")
-                if len(text) < 2:
-                    text = ""
-            elif audio_bytes[:4] == b'\x1a\x45\xdf\xa3':
-                import tempfile, subprocess
-                tmp_in = tempfile.NamedTemporaryFile(suffix='.webm', delete=False)
-                tmp_out = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
-                try:
-                    tmp_in.write(audio_bytes)
-                    tmp_in.close()
-                    r = subprocess.run(['ffmpeg', '-y', '-i', tmp_in.name, '-ar', '16000', '-ac', '1', '-sample_fmt', 's16', tmp_out.name], capture_output=True, timeout=10)
-                    if r.returncode == 0:
-                        wav_data = open(tmp_out.name, 'rb').read()
-                        if len(wav_data) > 44:
-                            pcm_data = wav_data[44:]
-                            samples_np = np.frombuffer(pcm_data, dtype=np.int16).astype(np.float32) / 32768.0
-                            rms_val = np.sqrt(np.mean(samples_np**2))
-                            print(f"[chat_voice] PCM rms: {rms_val:.4f}")
-                            if rms_val >= 0.01:
-                                segments, _ = model.transcribe(samples_np, language="zh", beam_size=1, no_speech_threshold=0.8, log_prob_threshold=-1.0, compression_ratio_threshold=2.0)
-                                text = " ".join(seg.text for seg in segments).strip()
-                            else:
-                                print(f"[chat_voice] 音频能量过低({rms_val:.4f})，跳过")
-                            if len(text) < 2:
-                                text = ""
-                except Exception as ff_err:
-                    print(f"[chat_voice] ffmpeg 转码失败: {ff_err}")
-                finally:
-                    try: os.unlink(tmp_in.name)
-                    except: pass
-                    try: os.unlink(tmp_out.name)
-                    except: pass
-            else:
-                samples_np = np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32) / 32768.0
-                rms_val = np.sqrt(np.mean(samples_np**2))
-                print(f"[chat_voice] raw PCM rms: {rms_val:.4f}")
-                if rms_val >= 0.01:
-                    segments, _ = model.transcribe(samples_np, language="zh", beam_size=1, no_speech_threshold=0.8, log_prob_threshold=-1.0, compression_ratio_threshold=2.0)
-                    text = " ".join(seg.text for seg in segments).strip()
-                if len(text) < 2:
-                    text = ""
-        else:
-            text = ""
-        if not text:
-            return jsonify({"reply": "未识别到语音内容", "audio": None, "error": None})
+        if not model:
+            return jsonify({"reply": "语音识别模型未加载", "audio": None, "error": None})
+
+        segments, info = model.transcribe(
+            samples_np,
+            language="zh",
+            beam_size=1,
+            vad_filter=True,
+            vad_parameters=dict(min_silence_duration_ms=300)
+        )
+        text = "".join(seg.text for seg in segments).strip()
+        print(f"[chat_voice] 识别结果: '{text}'")
+
+        if not text:            return jsonify({"reply": "未识别到语音内容", "audio": None, "error": None})
         print(f"[chat_voice] 识别结果: {text[:50]}")
         reply = call_deepseek(text, history)
         if not reply:
