@@ -19,7 +19,7 @@ import llm
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), 'frontend')
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # ── 静态文件 ──
 @app.route('/')
