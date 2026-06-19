@@ -1388,8 +1388,9 @@ function getDemoReply(q) {
 // 语音消息（按住说话）
 // ══════════════════════════════════════
 function hS(e) {
+  console.log('[HOLD] mousedown')
   e.preventDefault()
-  if (isRec) return
+  if (isRec) { console.log('[HOLD] already recording'); return }
   shouldSend = false
   const btn = document.getElementById('holdBtn')
   btn.classList.add('pr'); btn.textContent = '松开 发送'
@@ -1429,10 +1430,12 @@ function startRec() {
       }
       aChunks = []; shouldSend = false
     }
-    mr.start(100); isRec = true
-  }).catch(e => console.error('[mic]', e))
+    console.log('[HOLD] mic started')
+  mr.start(100); isRec = true
+  }).catch(e => { console.error('[mic]', e); alert('麦克风错误: '+e.message) })
 }
 async function sendVoice(chunks, dur) {
+  console.log('[HOLD] sendVoice called, chunks=' + chunks.length + ', dur=' + dur)
   hideIdle()
   // 语音气泡
   const vDiv = document.createElement('div')
