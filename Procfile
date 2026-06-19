@@ -1,1 +1,1 @@
-web: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --worker-class sync
+web: python -c "from waitress import serve; from app import app; serve(app, host='0.0.0.0', port=$PORT, threads=4)"
