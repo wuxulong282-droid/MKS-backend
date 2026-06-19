@@ -1026,8 +1026,7 @@ body {
     <textarea class="txt-input" id="ibox"
       placeholder="向马克思提问..."
       rows="1"
-      oninput="resize(this)"
-      onkeydown="onKey(event)"></textarea>
+      id="msgInputInline"></textarea>
     <button class="send-btn" onclick="send()">
       <svg width="18" height="18" viewBox="0 0 24 24">
         <path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/>
@@ -1319,6 +1318,14 @@ function resize(el) {
 function onKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
 }
+// 动态绑定输入框事件（避免 HTML onclick 在手机浏览器未定义）
+document.addEventListener('DOMContentLoaded', function() {
+  var inp = document.getElementById('msgInputInline')
+  if (inp) {
+    inp.addEventListener('input', function() { resize(inp) })
+    inp.addEventListener('keydown', function(e) { onKey(e) })
+  }
+})
 function ask(q) {
   document.getElementById('ibox').value = q
   setMode('text')
