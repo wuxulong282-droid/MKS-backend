@@ -1456,14 +1456,18 @@ async function sendVoice(chunks, dur) {
     if (!transcript) { removeEl(tid); addA('未能识别到语音', null); setStatus('idle'); scrollBottom(); return }
     vDiv.innerHTML = `<div class="voice-bbl"><span class="voice-wave">🎤</span><span style="margin-left:6px">${transcript}</span></div>`
     history.push({ role: 'user', content: transcript })
-    const resp = await fetch(API_BASE + '/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: transcript, history: history.slice(0, -1), tts: false })
+    const reply = await new Promise(function(resv, rej) {
+      var xhr = new XMLHttpRequest()
+      xhr.open('POST', API_BASE + '/chat', true)
+      xhr.setRequestHeader('Content-Type', 'application/json')
+      xhr.onload = function() {
+        try { var d = JSON.parse(xhr.responseText); resv(d.reply || d.text || '(无回复)') }
+        catch(e) { rej('parse error') }
+      }
+      xhr.onerror = function() { rej('network') }
+      xhr.send(JSON.stringify({ message: transcript, history: history.slice(0, -1), tts: false }))
     })
-    const data = await resp.json()
     removeEl(tid)
-    const reply = data.reply || data.text || '(无回复)'
     addA(reply, null)
     history.push({ role: 'assistant', content: reply })
     setStatus('idle')
