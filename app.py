@@ -347,5 +347,8 @@ if __name__ == '__main__':
     print(" URL: http://localhost:5700")
     print(" 接口: /chat /chat_voice /chat_stream /tts")
     print("=" * 45)
+    # Railway 使用 $PORT 环境变量，本地默认 5700
+    port = int(os.environ.get('PORT', 5700))
     from waitress import serve
-    serve(app, host='0.0.0.0', port=5700, threads=8)
+    print(f"[启动] 监听端口 {port}", flush=True)
+    serve(app, host='0.0.0.0', port=port, threads=8)
