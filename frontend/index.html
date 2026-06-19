@@ -1434,43 +1434,40 @@ function startRec() {
 }
 async function sendVoice(chunks, dur) {
   hideIdle()
+  // 语音气泡
   const vDiv = document.createElement('div')
   vDiv.className = 'voice-row'
   vDiv.innerHTML = `<div class="voice-bbl"><span class="voice-wave">🎤</span>${dur}" 语音消息</div>`
   document.getElementById('dialogue').appendChild(vDiv)
   scrollBottom()
+
   setStatus('thinking')
   const tid = addThinking()
+
+  const blob = new Blob(chunks, { type: 'audio/webm' })
+  const b64 = await new Promise(res => {
+    const r = new FileReader()
+    r.onload = () => res(r.result.split(',')[1])
+    r.readAsDataURL(blob)
+  })
+
   try {
-    // 浏览器语音识别
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)()
-    recognition.lang = 'zh-CN'
-    recognition.continuous = false
-    recognition.interimResults = false
-    const transcript = await new Promise(function(resolve, reject) {
-      recognition.onresult = function(e) { resolve(e.results[0][0].transcript) }
-      recognition.onerror = function(e) { reject(e) }
-      recognition.start()
-      setTimeout(function() { try { recognition.abort() } catch(e) {} reject(new Error('timeout')) }, 10000)
-    })
-    if (!transcript) { removeEl(tid); addA('未能识别到语音，请重试', null); setStatus('idle'); scrollBottom(); return }
-    vDiv.innerHTML = `<div class="voice-bbl"><span class="voice-wave">🎤</span><span style="margin-left:6px">${transcript}</span></div>`
-    history.push({ role: 'user', content: transcript })
-    const resp = await fetch(API_BASE + '/chat', {
+    const resp = await fetch(API_BASE + '/chat_voice', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: transcript, history: history.slice(-16) })
+      body: JSON.stringify({ audio_b64: b64, history })
     })
     const data = await resp.json()
     removeEl(tid)
-    const reply = data.reply || data.text || '(无回复)'
-    addA(reply, null)
-    history.push({ role: 'assistant', content: reply })
-    setStatus('idle')
-    autoSaveConversation()
+    if (data.transcript) history.push({ role: 'user', content: data.transcript })
+    addA(data.reply, data.audio); autoSaveConversation()
+    history.push({ role: 'assistant', content: data.reply })
+    setStatus('speaking')
+    if (data.audio) playB64(data.audio, null, () => setStatus('idle'))
+    else setTimeout(() => setStatus('idle'), 3000)
   } catch (e) {
     removeEl(tid)
-    addA('语音识别出错，请重试', null)
+    addA('语音处理出错，请重试', null)
     setStatus('idle')
   }
   scrollBottom()
@@ -1589,16 +1586,22 @@ function finishSegAndSend() {
 function sendSegHTTP(chunks) {
   if (liveRecState === 'stopped' || liveRecState === 'idle') return
   liveRecState = 'waiting'
-  document.getElementById('lvHint').textContent = '正在识别语音...'
-  // 浏览器语音识别
-  var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)()
-  recognition.lang = 'zh-CN'
-  recognition.continuous = false
-  recognition.interimResults = false
-  recognition.onresult = function(e) {
-    var transcript = e.results[0][0].transcript
-    if (!transcript.trim()) { resumeListenHTTP(); return }
-    var tlog = document.getElementById('lvTlog')
+  document.getElementById('lvHint').textContent = '马克思正在思考'
+  var blob = new Blob(chunks, { type: 'audio/webm' })
+  var reader = new FileReader()
+  reader.onload = function() {
+    var b64 = reader.result.split(',')[1]
+    // 第一步：只做语音识别，不需要LLM回复（chat_stream会再做）
+    fetch(API_BASE + '/asr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ audio_b64: b64 })
+    })
+    .then(function(r) { return r.json() })
+    .then(function(d) {
+      var transcript = d.text || d.transcript || ''
+      if (!transcript) { resumeListenHTTP(); return }
+      var tlog = document.getElementById('lvTlog')
       var elMarx = document.getElementById('lvMarx')
       if (elMarx) elMarx.textContent = ''
       var elUser = document.getElementById('lvUser')
@@ -1678,11 +1681,8 @@ function sendSegHTTP(chunks) {
       console.error('[liveHTTP] voice err:', e)
       resumeListenHTTP()
     })
-  recognition.onerror = function(e) { console.error('[live] speech err', e); resumeListenHTTP() }
-  recognition.onend = function() { /* 正常结束 */ }
-  recognition.start()
-  // 15秒超时
-  setTimeout(function() { try { recognition.abort() } catch(e) {} }, 15000)
+  }
+  reader.readAsDataURL(blob)
 }
 function stopLiveMicHTTP() {
   liveRecState = 'stopped'
