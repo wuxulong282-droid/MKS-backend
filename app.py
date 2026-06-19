@@ -12,7 +12,14 @@ if sys.platform == "win32":
 
 from config import (DEEPSEEK_API_KEY, DEEPSEEK_API_URL,
                     MODEL_NAME, MARX_SYSTEM_PROMPT)
-import asr
+# ASR 模块（云端可缺少 numpy）
+try:
+    import asr
+    _HAS_ASR = True
+except ImportError:
+    _HAS_ASR = False
+    print("[警告] ASR 模块导入失败（numpy 缺失），语音输入不可用", file=sys.stderr)
+
 import tts
 import llm
 
@@ -142,7 +149,11 @@ def chat_voice():
         audio_bytes = base64.b64decode(audio_b64)
         print(f"[voice] 收到音频 {len(audio_bytes)} bytes")
 
-        text = asr.transcribe(audio_bytes)
+        if _HAS_ASR:
+            text = asr.transcribe(audio_bytes)
+        else:
+            print("[voice] ASR 不可用，模拟空识别")
+            text = ""
         if not text:
             return jsonify({"reply": "", "audio": None}), 200
         print(f"[延迟] 按住说话:ASR完成 耗时{time.time()-t0:.2f}s 识别:{text[:30]}")
@@ -187,7 +198,11 @@ def asr_route():
         if not audio_b64:
             return jsonify({"text": "", "error": None}), 200
         audio_bytes = base64.b64decode(audio_b64)
-        text = asr.transcribe(audio_bytes)
+        if _HAS_ASR:
+            text = asr.transcribe(audio_bytes)
+        else:
+            print("[asr] ASR 不可用，模拟空识别")
+            text = ""
         t1 = time.time()
         print(f"[延迟] ASR完成 耗时{t1-t0:.2f}s 识别:{text[:30] if text else '(空)'}")
         return jsonify({"text": text or "", "error": None})
@@ -320,11 +335,14 @@ if __name__ == '__main__':
             print("[启动] 预加载语音识别模型...")
             try:
                 import asr
-                m = asr.get_model()
-                if m:
-                    print("[启动] 语音模型加载完成")
+                if _HAS_ASR:
+                    m = asr.get_model()
+                    if m:
+                        print("[启动] 语音模型加载完成")
+                    else:
+                        print("[启动] 语音模型加载失败")
                 else:
-                    print("[启动] 语音模型加载失败")
+                    print("[启动] ASR 不可用，跳过语音预加载")
             except Exception as e:
                 print(f"[启动] 预加载异常: {e}")
                 import traceback
