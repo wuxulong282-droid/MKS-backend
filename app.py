@@ -301,35 +301,40 @@ def delete_conversation(conv_id):
         return jsonify({'error': 'failed'}), 500
 
 if __name__ == '__main__':
-    # 重定向日志到文件（因为 Waitress 可能吞掉 print）
-    log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mks_debug.log')
-    sys.stdout = open(log_file, 'w', encoding='utf-8')
-    sys.stderr = sys.stdout
-    print(f"[启动] 日志重定向到 {log_file}", flush=True)
-    
+    # 云端部署（Railway）不需要日志重定向和语音预加载
+    if os.environ.get('RAILWAY_ENVIRONMENT'):
+        port = int(os.environ.get('PORT', 8080))
+        print(f"[启动] Railway 模式，端口 {port}", flush=True)
+        from waitress import serve
+        serve(app, host='0.0.0.0', port=port, threads=4)
+    else:
+        # 本地开发模式：日志重定向 + 语音预加载
+        log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mks_debug.log')
+        sys.stdout = open(log_file, 'w', encoding='utf-8')
+        sys.stderr = sys.stdout
+        print(f"[启动] 日志重定向到 {log_file}", flush=True)
 
-    # 预加载语音模型（避免首次请求超时）
-    import threading
-    def _preload():
-        print("[启动] 预加载语音识别模型...")
-        try:
-            import asr
-            m = asr.get_model()
-            if m:
-                print("[启动] 语音模型加载完成")
-            else:
-                print("[启动] 语音模型加载失败")
-        except Exception as e:
-            print(f"[启动] 预加载异常: {e}")
-            import traceback
-            traceback.print_exc()
-    threading.Thread(target=_preload, daemon=True).start()
-    
+        # 预加载语音模型（避免首次请求超时）
+        import threading
+        def _preload():
+            print("[启动] 预加载语音识别模型...")
+            try:
+                import asr
+                m = asr.get_model()
+                if m:
+                    print("[启动] 语音模型加载完成")
+                else:
+                    print("[启动] 语音模型加载失败")
+            except Exception as e:
+                print(f"[启动] 预加载异常: {e}")
+                import traceback
+                traceback.print_exc()
+        threading.Thread(target=_preload, daemon=True).start()
 
-    print("=" * 45)
-    print(" [MKS] Marx Agent 启动")
-    print(" URL: http://localhost:5700")
-    print(" 接口: /chat /chat_voice /chat_stream /tts")
-    print("=" * 45)
-    from waitress import serve
-    serve(app, host='0.0.0.0', port=5700, threads=8)
+        print("=" * 45)
+        print(" [MKS] Marx Agent 启动")
+        print(" URL: http://localhost:5700")
+        print(" 接口: /chat /chat_voice /chat_stream /tts")
+        print("=" * 45)
+        from waitress import serve
+        serve(app, host='0.0.0.0', port=5700, threads=8)
