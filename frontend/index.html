@@ -1458,9 +1458,8 @@ async function sendVoice(chunks, dur) {
     history.push({ role: 'user', content: transcript })
     const resp = await fetch(API_BASE + '/chat', {
       method: 'POST',
-      mode: 'cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: transcript, history: history.slice(-16) })
+      body: JSON.stringify({ message: transcript, history: history.slice(0, -1), tts: false })
     })
     const data = await resp.json()
     removeEl(tid)
