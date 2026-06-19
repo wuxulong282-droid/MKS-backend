@@ -40,10 +40,24 @@ def find_ffmpeg():
                 return p
     except Exception:
         pass
+    # Railway/Linux 环境常见路径
+    linux_candidates = [
+        '/usr/bin/ffmpeg',
+        '/usr/local/bin/ffmpeg',
+        '/nix/var/nix/profiles/default/bin/ffmpeg',
+        '/root/.nix-profile/bin/ffmpeg',
+    ]
+    for c in linux_candidates:
+        if os.path.isfile(c):
+            print(f'[ASR] ffmpeg 找到: {c}')
+            FFMPEG_PATH = c
+            return c
+
     p = shutil.which('ffmpeg')
     if p and os.path.isfile(p):
         FFMPEG_PATH = p
         return p
+    print('[ASR] ffmpeg 未找到')
     return None
 
 
