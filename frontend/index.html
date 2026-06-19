@@ -7,6 +7,30 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1410">
 <title>对话·马克思</title>
+<script>
+// 全局函数：必须在任何 DOM 事件之前定义
+function resize(el) {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 90) + 'px';
+}
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
+window.send = window.send || function(){};
+window.ask = window.ask || function(q){document.getElementById('ibox').value=q;setMode('text')};
+window.setMode = window.setMode || function(m){console.log('setMode',m)};
+window.toggleMode = window.toggleMode || function(m){console.log('toggleMode',m)};
+window.enterLive = window.enterLive || function(){console.log('enterLive')};
+window.exitLive = window.exitLive || function(){console.log('exitLive')};
+window.toggleLiveMic = window.toggleLiveMic || function(){console.log('toggleLiveMic')};
+window.toggleTTS = window.toggleTTS || function(){console.log('toggleTTS')};
+window.openHistory = window.openHistory || function(){console.log('openHistory')};
+window.closeHistory = window.closeHistory || function(){console.log('closeHistory')};
+window.newConversation = window.newConversation || function(){console.log('newConversation')};
+window.loadConversation = window.loadConversation || function(id){console.log('loadConversation',id)};
+window.deleteConversation = window.deleteConversation || function(id,el){console.log('deleteConversation',id)};
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&family=Noto+Sans+SC:wght@300;400;500&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>
