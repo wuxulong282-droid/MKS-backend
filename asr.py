@@ -22,17 +22,28 @@ def find_ffmpeg():
     global FFMPEG_PATH
     if FFMPEG_PATH:
         return FFMPEG_PATH
-    known = [
-        r'C:\Users\武旭龙\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin\ffmpeg.exe',
-        r'C:\Users\武旭龙\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg.Essentials_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-essentials_build\bin\ffmpeg.exe',
-    ]
-    for p in known:
-        if os.path.isfile(p):
-            FFMPEG_PATH = p
-            return p
     import shutil
+    # 1) shutil.which — 跨平台最通用
+    p = shutil.which('ffmpeg')
+    if p and os.path.isfile(p):
+        print(f'[ASR] ffmpeg found via shutil: {p}')
+        FFMPEG_PATH = p
+        return p
+    # 2) subprocess which — Linux 环境
+    import subprocess as _sp
     try:
-        r = subprocess.run(['where', 'ffmpeg'], capture_output=True, text=True, timeout=5)
+        r = _sp.run(['which', 'ffmpeg'], capture_output=True, text=True, timeout=5)
+        if r.returncode == 0:
+            p = r.stdout.strip()
+            if p and os.path.isfile(p):
+                print(f'[ASR] ffmpeg found via which: {p}')
+                FFMPEG_PATH = p
+                return p
+    except Exception:
+        pass
+    # 3) Windows where
+    try:
+        r = _sp.run(['where', 'ffmpeg'], capture_output=True, text=True, timeout=5)
         if r.returncode == 0:
             p = r.stdout.strip().split('\n')[0].strip()
             if p and os.path.isfile(p):
@@ -40,23 +51,40 @@ def find_ffmpeg():
                 return p
     except Exception:
         pass
-    # Railway/Linux 环境常见路径
+    # 4) Windows 硬编码路径（本地开发）
+    win_known = [
+        r'C:\Users\武旭龙\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin\ffmpeg.exe',
+        r'C:\Users\武旭龙\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg.Essentials_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-essentials_build\bin\ffmpeg.exe',
+    ]
+    for p in win_known:
+        if os.path.isfile(p):
+            FFMPEG_PATH = p
+            return p
+    # 5) 常见 Linux 路径
     linux_candidates = [
         '/usr/bin/ffmpeg',
         '/usr/local/bin/ffmpeg',
         '/nix/var/nix/profiles/default/bin/ffmpeg',
         '/root/.nix-profile/bin/ffmpeg',
+        '/opt/homebrew/bin/ffmpeg',
     ]
     for c in linux_candidates:
         if os.path.isfile(c):
-            print(f'[ASR] ffmpeg 找到: {c}')
+            print(f'[ASR] ffmpeg found linux: {c}')
             FFMPEG_PATH = c
             return c
-
-    p = shutil.which('ffmpeg')
-    if p and os.path.isfile(p):
-        FFMPEG_PATH = p
-        return p
+    # 6) 递归搜索 PATH 里的 ffmpeg
+    try:
+        path_dirs = os.environ.get('PATH', '').split(':')
+        for d in path_dirs:
+            for name in ['ffmpeg', 'ffmpeg.exe']:
+                fp = os.path.join(d, name)
+                if os.path.isfile(fp):
+                    print(f'[ASR] ffmpeg found in PATH: {fp}')
+                    FFMPEG_PATH = fp
+                    return fp
+    except Exception:
+        pass
     print('[ASR] ffmpeg 未找到')
     return None
 
