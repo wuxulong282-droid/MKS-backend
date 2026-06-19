@@ -146,7 +146,12 @@ def transcribe(audio_bytes: bytes) -> str:
             return text
         print('[ASR] 讯飞识别为空，尝试本地Whisper')
 
-    # 兜底用本地Whisper
+    # 兜底用本地Whisper（云端没有 faster-whisper）
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError:
+        print('[ASR] faster-whisper 未安装，跳过本地Whisper')
+        return ''
     try:
         wav_data = decode_audio_to_wav(audio_bytes)
         if wav_data is None or len(wav_data) < 5000:
@@ -320,7 +325,9 @@ def transcribe_xfyun(audio_bytes: bytes) -> str:
         t.daemon = True
         t.start()
         done_event.wait(timeout=15)
-        return ''.join(result_text).strip()
+        result = ''.join(result_text).strip()
+        print(f'[ASR] 讯飞识别结果: "{result}"')
+        return result
     except Exception as e:
         print(f'[ASR] 识别异常: {e}')
         return ''
