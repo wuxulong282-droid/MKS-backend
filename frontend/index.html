@@ -1432,6 +1432,23 @@ function startRec() {
     mr.start(100); isRec = true
   }).catch(e => console.error('[mic]', e))
 }
+// 浏览器语音识别 fallback（当后端 ASR 不可用时）
+function browserAsr() {
+  return new Promise(function(resolve, reject) {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) { reject(new Error('浏览器不支持语音识别')); return }
+    var rec = new SR()
+    rec.lang = 'zh-CN'
+    rec.continuous = false
+    rec.interimResults = false
+    rec.maxAlternatives = 1
+    rec.onresult = function(e) { resolve(e.results[0][0].transcript) }
+    rec.onerror = function(e) { reject(e) }
+    rec.start()
+    setTimeout(function() { try { rec.abort() } catch(e) {} reject(new Error('语音识别超时')) }, 10000)
+  })
+}
+
 async function sendVoice(chunks, dur) {
   hideIdle()
   // 语音气泡
@@ -1466,9 +1483,28 @@ async function sendVoice(chunks, dur) {
     if (data.audio) playB64(data.audio, null, () => setStatus('idle'))
     else setTimeout(() => setStatus('idle'), 3000)
   } catch (e) {
-    removeEl(tid)
-    addA('语音处理出错，请重试', null)
-    setStatus('idle')
+    // 后端 ASR 不可用，fallback 到浏览器语音识别
+    try {
+      var transcript = await browserAsr()
+      if (!transcript) { removeEl(tid); addA('未能识别到语音', null); setStatus('idle'); scrollBottom(); return }
+      vDiv.innerHTML = `<div class="voice-bbl"><span class="voice-wave">🎤</span><span style="margin-left:6px">${transcript}</span></div>`
+      history.push({ role: 'user', content: transcript })
+      const resp2 = await fetch(API_BASE + '/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: transcript, history: history.slice(-16) })
+      })
+      const data2 = await resp2.json()
+      removeEl(tid)
+      addA(data2.reply || data2.text || '(无回复)', null)
+      history.push({ role: 'assistant', content: data2.reply || data2.text || '' })
+      setStatus('idle')
+      autoSaveConversation()
+    } catch(e2) {
+      removeEl(tid)
+      addA('语音识别出错', null)
+      setStatus('idle')
+    }
   }
   scrollBottom()
 }
@@ -1592,14 +1628,31 @@ function sendSegHTTP(chunks) {
   reader.onload = function() {
     var b64 = reader.result.split(',')[1]
     // 第一步：只做语音识别，不需要LLM回复（chat_stream会再做）
-    fetch(API_BASE + '/asr', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ audio_b64: b64 })
+    // 后端 ASR 不可用时 fallback 到浏览器语音识别
+    var asrPromise
+    if (_HAS_ASR !== false) {
+      asrPromise = fetch(API_BASE + '/asr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audio_b64: b64 })
+      }).then(function(r) { return r.json() }).then(function(d) { return d.text || d.transcript || '' })
+    } else {
+      asrPromise = browserAsr().catch(function() { return '' })
+    }
+    var asrFallback = false
+    asrPromise.then(function(transcript) {
+      if (!transcript) {
+        // 后端 ASR 返回空，尝试浏览器 ASR
+        if (!asrFallback) {
+          asrFallback = true
+          return browserAsr().then(function(t) { transcript = t; return processTranscript(transcript) }).catch(function() { resumeListenHTTP() })
+        } else { resumeListenHTTP(); return }
+      }
+      processTranscript(transcript)
+    }).catch(function() {
+      browserAsr().then(function(t) { processTranscript(t) }).catch(function() { resumeListenHTTP() })
     })
-    .then(function(r) { return r.json() })
-    .then(function(d) {
-      var transcript = d.text || d.transcript || ''
+    function processTranscript(transcript) {
       if (!transcript) { resumeListenHTTP(); return }
       var tlog = document.getElementById('lvTlog')
       var elMarx = document.getElementById('lvMarx')
