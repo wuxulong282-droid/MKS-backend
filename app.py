@@ -12,13 +12,13 @@ if sys.platform == "win32":
 
 from config import (DEEPSEEK_API_KEY, DEEPSEEK_API_URL,
                     MODEL_NAME, MARX_SYSTEM_PROMPT)
-# ASR 模块（云端缺少 faster-whisper 时可跳过）
+# ASR 模块（云端可缺少 numpy）
 try:
     import asr
     _HAS_ASR = True
 except ImportError:
     _HAS_ASR = False
-    print("[警告] ASR 模块不可用（请使用浏览器语音识别）", flush=True)
+    print("[警告] ASR 模块导入失败（numpy 缺失），语音输入不可用", file=sys.stderr)
 
 import tts
 import llm
@@ -26,7 +26,7 @@ import llm
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), 'frontend')
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # ── 静态文件 ──
 @app.route('/')
@@ -136,6 +136,7 @@ def chat_stream():
 # ── 语音消息（按住说话→识别→回复）──
 @app.route('/chat_voice', methods=['POST'])
 def chat_voice():
+    print('[voice] 收到请求')
     try:
         import time
         t0 = time.time()
@@ -147,14 +148,19 @@ def chat_voice():
             return jsonify({"reply": "没有收到音频", "audio": None}), 200
 
         audio_bytes = base64.b64decode(audio_b64)
-        print(f"[voice] 收到音频 {len(audio_bytes)} bytes")
+        print(f'[voice] 音频大小: {len(audio_bytes)} bytes')
 
+        print('[voice] 开始识别...')
         if _HAS_ASR:
             text = asr.transcribe(audio_bytes)
         else:
+            print("[voice] ASR 不可用，模拟空识别")
             text = ""
+        print(f'[voice] 识别结果: "{text}"')
         if not text:
+            print('[voice] 识别为空，返回提示')
             return jsonify({"reply": "", "audio": None}), 200
+        print(f'[voice] 发送给LLM: {text[:30]}')
         print(f"[延迟] 按住说话:ASR完成 耗时{time.time()-t0:.2f}s 识别:{text[:30]}")
 
         t1 = time.time()
@@ -179,11 +185,8 @@ def chat_voice():
         })
     except Exception as e:
         import traceback
-        tb = traceback.format_exc()
-        _crash_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voice_crash.txt')
-        with open(_crash_path, 'w', encoding='utf-8') as _f:
-            _f.write(tb)
         traceback.print_exc()
+        print(f'[voice] 异常: {e}')
         return jsonify({"reply": "处理出错，请重试", "audio": None, "error": None}), 200
 
 # ── 语音识别（仅转文字，不含LLM）──
@@ -200,6 +203,7 @@ def asr_route():
         if _HAS_ASR:
             text = asr.transcribe(audio_bytes)
         else:
+            print("[asr] ASR 不可用，模拟空识别")
             text = ""
         t1 = time.time()
         print(f"[延迟] ASR完成 耗时{t1-t0:.2f}s 识别:{text[:30] if text else '(空)'}")
@@ -314,41 +318,43 @@ def delete_conversation(conv_id):
         return jsonify({'error': 'failed'}), 500
 
 if __name__ == '__main__':
-    # 重定向日志到文件（因为 Waitress 可能吞掉 print）
-    log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mks_debug.log')
-    sys.stdout = open(log_file, 'w', encoding='utf-8')
-    sys.stderr = sys.stdout
-    print(f"[启动] 日志重定向到 {log_file}", flush=True)
-    
+    # 云端部署（Railway）不需要日志重定向和语音预加载
+    if os.environ.get('RAILWAY_ENVIRONMENT'):
+        port = int(os.environ.get('PORT', 8080))
+        print(f"[启动] Railway 模式，端口 {port}", flush=True)
+        from waitress import serve
+        serve(app, host='0.0.0.0', port=port, threads=4)
+    else:
+        # 本地开发模式：日志重定向 + 语音预加载
+        log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mks_debug.log')
+        sys.stdout = open(log_file, 'w', encoding='utf-8')
+        sys.stderr = sys.stdout
+        print(f"[启动] 日志重定向到 {log_file}", flush=True)
 
-    # 预加载语音模型（避免首次请求超时）
-    import threading
-    def _preload():
-        print("[启动] 预加载语音识别模型...")
-        try:
-            import asr
-            if _HAS_ASR:
-                m = asr.get_model()
-                if m:
-                    print("[启动] 语音模型加载完成")
+        # 预加载语音模型（避免首次请求超时）
+        import threading
+        def _preload():
+            print("[启动] 预加载语音识别模型...")
+            try:
+                import asr
+                if _HAS_ASR:
+                    m = asr.get_model()
+                    if m:
+                        print("[启动] 语音模型加载完成")
+                    else:
+                        print("[启动] 语音模型加载失败")
                 else:
-                    print("[启动] 语音模型加载失败")
-            else:
-                print("[启动] ASR 不可用，跳过语音预加载")
-        except Exception as e:
-            print(f"[启动] 预加载异常: {e}")
-            import traceback
-            traceback.print_exc()
-    threading.Thread(target=_preload, daemon=True).start()
-    
+                    print("[启动] ASR 不可用，跳过语音预加载")
+            except Exception as e:
+                print(f"[启动] 预加载异常: {e}")
+                import traceback
+                traceback.print_exc()
+        threading.Thread(target=_preload, daemon=True).start()
 
-    print("=" * 45)
-    print(" [MKS] Marx Agent 启动")
-    print(" URL: http://localhost:5700")
-    print(" 接口: /chat /chat_voice /chat_stream /tts")
-    print("=" * 45)
-    # Railway 使用 $PORT 环境变量，本地默认 5700
-    port = int(os.environ.get('PORT', 5700))
-    from waitress import serve
-    print(f"[启动] 监听端口 {port}", flush=True)
-    serve(app, host='0.0.0.0', port=port, threads=8)
+        print("=" * 45)
+        print(" [MKS] Marx Agent 启动")
+        print(" URL: http://localhost:5700")
+        print(" 接口: /chat /chat_voice /chat_stream /tts")
+        print("=" * 45)
+        from waitress import serve
+        serve(app, host='0.0.0.0', port=5700, threads=8)
