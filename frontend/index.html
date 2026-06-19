@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,12 +6,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1410">
-<title>瀵硅瘽路椹厠鎬?/title>
+<title>对话·马克思</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&family=Noto+Sans+SC:wght@300;400;500&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>
-/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-   TOKEN SYSTEM 鈥?椹厠鎬濅功鎴?鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 */
+/* ══════════════════════════════════════
+   TOKEN SYSTEM — 马克思书房
+══════════════════════════════════════ */
 :root {
   --bg:       #1b1410;
   --bg2:      #231a14;
@@ -32,9 +33,9 @@
   --r-sm:     8px;
 }
 
-/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+/* ══════════════════════════════════════
    RESET & BASE
-鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 */
+══════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; overflow: hidden; }
 body {
@@ -49,9 +50,9 @@ body {
   position: relative;
 }
 
-/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+/* ══════════════════════════════════════
    HEADER
-鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 */
+══════════════════════════════════════ */
 .hd {
   flex-shrink: 0;
   padding: 10px 18px 8px;
@@ -105,8 +106,9 @@ body {
 }
 @keyframes modePulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-   PORTRAIT SECTION锛堥┈鍏嬫€濆浘鍍忓尯锛?鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 */
+/* ══════════════════════════════════════
+   PORTRAIT SECTION（马克思图像区）
+══════════════════════════════════════ */
 .portrait-section {
   flex-shrink: 0;
   position: relative;
@@ -121,7 +123,7 @@ body {
     0 8px 32px rgba(0,0,0,.6);
 }
 
-/* 鍥涜瑁呴グ */
+/* 四角装饰 */
 .corner { position: absolute; width: 18px; height: 18px; z-index: 5; }
 .corner::before, .corner::after {
   content: '';
@@ -142,7 +144,7 @@ body {
 .corner.br::before { width: 100%; height: 1.5px; bottom: 0; right: 0; }
 .corner.br::after  { width: 1.5px; height: 100%; bottom: 0; right: 0; }
 
-/* 椹厠鎬濈収鐗?*/
+/* 马克思照片 */
 .marx-img {
   width: 100%;
   height: 100%;
@@ -152,7 +154,7 @@ body {
   transition: opacity .5s ease;
 }
 
-/* 瑙嗛锛堝疄鏃惰闊虫椂瑕嗙洊鐓х墖锛?*/
+/* 视频（实时语音时覆盖照片） */
 .marx-video {
   position: absolute;
   inset: 0;
@@ -164,7 +166,7 @@ body {
 }
 .marx-video.active { opacity: 1; }
 
-/* 搴曢儴娓愬彉閬僵 */
+/* 底部渐变遮罩 */
 .portrait-gradient {
   position: absolute;
   bottom: 0; left: 0; right: 0;
@@ -178,7 +180,7 @@ body {
   z-index: 3;
 }
 
-/* 鍚嶈█娴眰 */
+/* 名言浮层 */
 .portrait-quote {
   position: absolute;
   bottom: 14px;
@@ -202,9 +204,9 @@ body {
   font-style: italic;
   font-family: 'IM Fell English', serif;
 }
-.quote-author::before { content: '鈥?'; }
+.quote-author::before { content: '— '; }
 
-/* 鐘舵€佽鏍?*/
+/* 状态角标 */
 .portrait-status {
   position: absolute;
   top: 10px; left: 10px;
@@ -221,8 +223,9 @@ body {
 }
 .portrait-status.hidden { opacity: 0; }
 
-/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-   STATUS BAR锛堢姸鎬佹潯锛?鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 */
+/* ══════════════════════════════════════
+   STATUS BAR（状态条）
+══════════════════════════════════════ */
 .status-bar {
   flex-shrink: 0;
   margin: 6px 14px 0;
@@ -252,9 +255,9 @@ body {
 @keyframes sd { 0%,80%,100%{opacity:.3;transform:scale(1)} 40%{opacity:1;transform:scale(1.4)} }
 .status-dots.hidden { display: none; }
 
-/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+/* ══════════════════════════════════════
    MAIN CONTENT AREA
-鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 */
+══════════════════════════════════════ */
 .main {
   flex: 1;
   overflow: hidden;
@@ -274,8 +277,9 @@ body {
 .scroll::-webkit-scrollbar { width: 2px; }
 .scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-   IDLE STATE锛堝緟鏈?鈥?鎺ㄨ崘闂锛?鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 */
+/* ══════════════════════════════════════
+   IDLE STATE（待机 — 推荐问题）
+══════════════════════════════════════ */
 .idle-panel { display: flex; flex-direction: column; gap: 10px; }
 
 .guide-label {
@@ -315,7 +319,7 @@ body {
   box-shadow: 0 0 14px var(--gold-glow);
 }
 
-/* 鍏ュ彛鎸夐挳 */
+/* 入口按钮 */
 .entry-row {
   display: flex;
   gap: 7px;
@@ -345,12 +349,12 @@ body {
   background: var(--gold-glow);
 }
 
-/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-   DIALOGUE LOG锛堝璇濊褰曪級
-鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 */
+/* ══════════════════════════════════════
+   DIALOGUE LOG（对话记录）
+══════════════════════════════════════ */
 .dialogue { display: flex; flex-direction: column; gap: 14px; }
 
-/* 鏃堕棿鍒嗗壊绾?*/
+/* 时间分割线 */
 .time-divider {
   display: flex;
   align-items: center;
@@ -366,7 +370,7 @@ body {
   background: var(--border);
 }
 
-/* 鐢ㄦ埛娑堟伅 */
+/* 用户消息 */
 .q-row { display: flex; justify-content: flex-end; }
 .q-bbl {
   max-width: 78%;
@@ -379,7 +383,7 @@ body {
   line-height: 1.7;
 }
 
-/* 璇煶娑堟伅 */
+/* 语音消息 */
 .voice-row { display: flex; justify-content: flex-end; }
 .voice-bbl {
   background: rgba(139,46,46,.1);
@@ -394,7 +398,7 @@ body {
 }
 .voice-wave { color: var(--gold-dim); font-size: 14px; }
 
-/* 椹厠鎬濆洖绛旓紙缇婄毊绾稿崱鐗囷級*/
+/* 马克思回答（羊皮纸卡片）*/
 .a-row { display: flex; flex-direction: column; gap: 5px; }
 .a-meta {
   display: flex;
@@ -437,9 +441,9 @@ body {
 }
 .a-card-body { padding-left: 12px; }
 
-/* 鎵撳瓧鏈烘晥鏋滃厜鏍?*/
+/* 打字机效果光标 */
 .a-card-body.typing::after {
-  content: '鈻?;
+  content: '▌';
   color: var(--gold);
   animation: cur .6s step-end infinite;
   font-size: 12px;
@@ -477,7 +481,7 @@ body {
 .a-play:active { border-color: var(--gold-dim); color: var(--gold); }
 .a-play.playing { color: var(--gold); border-color: var(--gold-dim); }
 
-/* 鎬濊€冧腑 */
+/* 思考中 */
 .thinking-row { display: flex; align-items: center; gap: 8px; }
 .thinking-avatar {
   width: 24px; height: 24px;
@@ -505,9 +509,9 @@ body {
 .t-dot:nth-child(3) { animation-delay: .44s; }
 @keyframes td { 0%,80%,100%{transform:scale(1);opacity:.3} 40%{transform:scale(1.5);opacity:1} }
 
-/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+/* ══════════════════════════════════════
    INPUT AREA
-鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 */
+══════════════════════════════════════ */
 .ia {
   flex-shrink: 0;
   background: var(--bg2);
@@ -518,7 +522,7 @@ body {
   gap: 7px;
 }
 
-/* 妯″紡鏍囩 */
+/* 模式标签 */
 .mode-tabs {
   display: flex;
   gap: 5px;
@@ -542,7 +546,7 @@ body {
   background: var(--gold-glow);
 }
 
-/* 鏂囧瓧杈撳叆琛?*/
+/* 文字输入行 */
 .text-row {
   display: flex;
   gap: 9px;
@@ -566,7 +570,7 @@ body {
 .txt-input::placeholder { color: var(--text-mu); }
 .txt-input:focus { border-color: var(--gold-dim); }
 
-/* 鍙戦€佹寜閽?*/
+/* 发送按钮 */
 .send-btn {
   width: 40px; height: 40px;
   border-radius: 50%;
@@ -580,7 +584,7 @@ body {
 .send-btn:active { background: var(--red-l); transform: scale(.9); }
 .send-btn svg { fill: white; }
 
-/* 璇煶鎸夐挳 */
+/* 语音按钮 */
 .mic-btn {
   width: 40px; height: 40px;
   border-radius: 50%;
@@ -594,7 +598,7 @@ body {
 .mic-btn svg { stroke: var(--text-mu); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .mic-btn:active { border-color: var(--red); background: rgba(139,46,46,.15); }
 
-/* 鎸変綇璇磋瘽 */
+/* 按住说话 */
 .voice-row-input { display: flex; justify-content: center; }
 .hold-btn {
   width: 100%;
@@ -619,7 +623,7 @@ body {
   box-shadow: 0 0 14px rgba(139,46,46,.25);
 }
 
-/* 搴曢儴鍚嶈█ */
+/* 底部名言 */
 .footer-quote {
   text-align: center;
   font-size: 10px;
@@ -635,7 +639,7 @@ body {
 /* HIDDEN */
 .hidden { display: none !important; }
 
-/* 鈹€鈹€ 鍘嗗彶渚ф粦闈㈡澘 鈹€鈹€ */
+/* ── 历史侧滑面板 ── */
 .hist-btn {
   background: none;
   border: none;
@@ -743,8 +747,9 @@ body {
 }
 .hist-item-del:active { color: var(--red-l); }
 
-/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-   LIVE VOICE OVERLAY锛堝疄鏃堕€氳瘽鍏ㄥ睆锛?鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 */
+/* ══════════════════════════════════════
+   LIVE VOICE OVERLAY（实时通话全屏）
+══════════════════════════════════════ */
 .live-overlay {
   position: fixed;
   inset: 0;
@@ -778,7 +783,7 @@ body {
   font-family: 'IM Fell English', serif;
 }
 
-/* 瑙嗛鍖?60vh */
+/* 视频区 60vh */
 .lv-video-wrap {
   flex-shrink: 0;
   height: 60vh;
@@ -796,7 +801,7 @@ body {
 }
 .lv-vid.active { opacity: 1; }
 
-/* 闈欐€佸浘锛堟棤瑙嗛鏃舵樉绀猴級 */
+/* 静态图（无视频时显示） */
 .lv-static-img {
   width: 100%; height: 100%;
   object-fit: cover;
@@ -826,7 +831,7 @@ body {
   backdrop-filter: blur(6px);
 }
 
-/* 瀛楀箷鍖?*/
+/* 字幕区 */
 .lv-subs {
   flex: 1;
   overflow-y: auto;
@@ -851,7 +856,7 @@ body {
   min-height: 20px;
 }
 
-/* 鎺у埗鍖?*/
+/* 控制区 */
 .lv-ctrl {
   flex-shrink: 0;
   height: 96px;
@@ -886,9 +891,9 @@ body {
   letter-spacing: .05em;
 }
 
-/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+/* ══════════════════════════════════════
    UTILS
-鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 */
+══════════════════════════════════════ */
 .sep {
   height: .5px;
   background: var(--border);
@@ -898,59 +903,60 @@ body {
 </head>
 <body>
 
-<!-- 鈺愨晲 HEADER 鈺愨晲 -->
+<!-- ══ HEADER ══ -->
 <header class="hd">
-  <button class="hist-btn" onclick="openHistory()">鈽?/button>
+  <button class="hist-btn" onclick="openHistory()">☰</button>
   <div class="hd-left">
     <div class="hd-name">Karl Marx</div>
-    <div class="hd-sub">銆婅祫鏈銆嬩綔鑰?路 鍘嗗彶鍞墿涓讳箟鍒涚珛鑰?/div>
+    <div class="hd-sub">《资本论》作者 · 历史唯物主义创立者</div>
   </div>
   <div class="hd-right">
-    <div class="hd-loc">London 路 1867</div>
+    <div class="hd-loc">London · 1867</div>
     <div class="hd-mode" id="hdMode">
       <div class="hd-mode-dot"></div>
-      <span id="hdModeText">鏂囧瓧浜ゆ祦</span>
+      <span id="hdModeText">文字交流</span>
     </div>
   </div>
 </header>
 
-<!-- 鈺愨晲 PORTRAIT 鈺愨晲 -->
+<!-- ══ PORTRAIT ══ -->
 <div class="portrait-section">
-  <!-- 鍥涜瑁呴グ -->
+  <!-- 四角装饰 -->
   <div class="corner tl"></div>
   <div class="corner tr"></div>
   <div class="corner bl"></div>
   <div class="corner br"></div>
 
-  <!-- 闈欐€佺収鐗?-->
+  <!-- 静态照片 -->
   <img class="marx-img" id="marxImg"
     src="mks.png"
-    alt="鍗″皵路椹厠鎬?
+    alt="卡尔·马克思"
     onerror="this.style.background='#2c2018';this.style.display='flex'">
 
-  <!-- 鍙岀紦鍐茶棰戯紙瀹炴椂閫氳瘽鏃剁敤锛?-->
+  <!-- 双缓冲视频（实时通话时用） -->
   <video id="marxVideoA" class="marx-video" autoplay muted playsinline></video>
   <video id="marxVideoB" class="marx-video" autoplay muted playsinline></video>
 
-  <!-- 搴曢儴娓愬彉 -->
+  <!-- 底部渐变 -->
   <div class="portrait-gradient"></div>
 
-  <!-- 鍚嶈█ -->
+  <!-- 名言 -->
   <div class="portrait-quote" id="portraitQuote">
     <div class="quote-text" id="quoteText">
-      "鍝插瀹朵滑鍙槸鐢ㄤ笉鍚屾柟寮忚В閲婁笘鐣岋紝闂鍦ㄤ簬鏀瑰彉涓栫晫銆?
+      "哲学家们只是用不同方式解释世界，问题在于改变世界。"
     </div>
     <div class="quote-author">Karl Marx</div>
   </div>
 
-  <!-- 鐘舵€佽鏍囷紙瀵硅瘽涓樉绀猴級 -->
+  <!-- 状态角标（对话中显示） -->
   <div class="portrait-status hidden" id="portraitStatus">
-    馃摉 椹厠鎬濇鍦ㄦ煡闃呰憲浣?  </div>
+    📖 马克思正在查阅著作
+  </div>
 </div>
 
-<!-- 鈺愨晲 STATUS BAR 鈺愨晲 -->
+<!-- ══ STATUS BAR ══ -->
 <div class="status-bar">
-  <span class="status-bar-text" id="statusBarText">馃摎 椹厠鎬濇鍦ㄩ槄璇汇€婅祫鏈銆?/span>
+  <span class="status-bar-text" id="statusBarText">📚 马克思正在阅读《资本论》</span>
   <div class="status-dots hidden" id="statusDots">
     <div class="status-dot"></div>
     <div class="status-dot"></div>
@@ -958,64 +964,67 @@ body {
   </div>
 </div>
 
-<!-- 鈺愨晲 MAIN 鈺愨晲 -->
+<!-- ══ MAIN ══ -->
 <div class="main">
   <div class="scroll" id="scroll">
 
-    <!-- 寰呮満闈㈡澘 -->
+    <!-- 待机面板 -->
     <div class="idle-panel" id="idlePanel">
       <div class="entry-row">
-        <button class="entry-btn" onclick="setMode('text')">鉁?鏂囧瓧浜ゆ祦</button>
-        <button class="entry-btn" onclick="setMode('voice')">馃帳 璇煶浜ゆ祦</button>
-        <button class="entry-btn" onclick="enterLive()">馃摓 瀹炴椂閫氳瘽</button>
+        <button class="entry-btn" onclick="setMode('text')">✦ 文字交流</button>
+        <button class="entry-btn" onclick="setMode('voice')">🎤 语音交流</button>
+        <button class="entry-btn" onclick="enterLive()">📞 实时通话</button>
       </div>
       <div class="sep"></div>
-      <div class="guide-label">鎬濇兂寮曞</div>
+      <div class="guide-label">思想引导</div>
       <div class="guide-grid">
-        <div class="guide-card" onclick="ask('浠€涔堟槸鍓╀綑浠峰€硷紵')">
-          <span class="guide-card-icon">馃挵</span>浠€涔堟槸鍓╀綑浠峰€硷紵
+        <div class="guide-card" onclick="ask('什么是剩余价值？')">
+          <span class="guide-card-icon">💰</span>什么是剩余价值？
         </div>
-        <div class="guide-card" onclick="ask('璧勬湰璁虹殑鏍稿績鎬濇兂鏄粈涔堬紵')">
-          <span class="guide-card-icon">馃摉</span>璧勬湰璁烘牳蹇冩€濇兂
+        <div class="guide-card" onclick="ask('资本论的核心思想是什么？')">
+          <span class="guide-card-icon">📖</span>资本论核心思想
         </div>
-        <div class="guide-card" onclick="ask('闈掑勾搴斿浣曟垚闀匡紵')">
-          <span class="guide-card-icon">馃尡</span>闈掑勾濡備綍鎴愰暱锛?        </div>
-        <div class="guide-card" onclick="ask('濡備綍鐞嗚В鍏变骇涓讳箟锛?)">
-          <span class="guide-card-icon">鉁?/span>濡備綍鐞嗚В鍏变骇涓讳箟锛?        </div>
-        <div class="guide-card" onclick="ask('浠€涔堟槸寮傚寲鍔冲姩锛?)">
-          <span class="guide-card-icon">鈿欙笍</span>浠€涔堟槸寮傚寲鍔冲姩锛?        </div>
-        <div class="guide-card" onclick="ask('鍘嗗彶鍞墿涓讳箟鏄粈涔堬紵')">
-          <span class="guide-card-icon">馃摐</span>鍘嗗彶鍞墿涓讳箟
+        <div class="guide-card" onclick="ask('青年应如何成长？')">
+          <span class="guide-card-icon">🌱</span>青年如何成长？
+        </div>
+        <div class="guide-card" onclick="ask('如何理解共产主义？')">
+          <span class="guide-card-icon">✊</span>如何理解共产主义？
+        </div>
+        <div class="guide-card" onclick="ask('什么是异化劳动？')">
+          <span class="guide-card-icon">⚙️</span>什么是异化劳动？
+        </div>
+        <div class="guide-card" onclick="ask('历史唯物主义是什么？')">
+          <span class="guide-card-icon">📜</span>历史唯物主义
         </div>
       </div>
     </div>
 
-    <!-- 瀵硅瘽璁板綍 -->
+    <!-- 对话记录 -->
     <div class="dialogue" id="dialogue"></div>
 
   </div>
 </div>
 
-<!-- 鈺愨晲 INPUT AREA 鈺愨晲 -->
+<!-- ══ INPUT AREA ══ -->
 <div class="ia">
   <div class="mode-tabs">
-    <button class="mtab on" id="tabText" onclick="setMode('text')">鏂囧瓧</button>
-    <button class="mtab" id="tabVoice" onclick="setMode('voice')">璇煶</button>
-    <button class="mtab" id="tabLive" onclick="enterLive()">閫氳瘽</button>
-    <button class="mtab" id="btnSibian" onclick="toggleMode('sibian')">鎬濊鲸</button>
-    <button class="mtab" id="btnYinyong" onclick="toggleMode('yinyong')">寮曠敤</button>
+    <button class="mtab on" id="tabText" onclick="setMode('text')">文字</button>
+    <button class="mtab" id="tabVoice" onclick="setMode('voice')">语音</button>
+    <button class="mtab" id="tabLive" onclick="enterLive()">通话</button>
+    <button class="mtab" id="btnSibian" onclick="toggleMode('sibian')">思辨</button>
+    <button class="mtab" id="btnYinyong" onclick="toggleMode('yinyong')">引用</button>
   </div>
 
-  <!-- 鏂囧瓧杈撳叆 -->
+  <!-- 文字输入 -->
   <div class="text-row" id="textRow">
-    <button class="mic-btn" id="ttsToggleBtn" onclick="toggleTTS()" title="璇煶鏈楄">
+    <button class="mic-btn" id="ttsToggleBtn" onclick="toggleTTS()" title="语音朗读">
       <svg width="18" height="18" viewBox="0 0 24 24">
         <path d="M11 5L6 9H2v6h4l5 4V5z"/>
         <path d="M15.54 8.46a5 5 0 0 1 0 7.07" id="ttsIcon"/>
       </svg>
     </button>
     <textarea class="txt-input" id="ibox"
-      placeholder="鍚戦┈鍏嬫€濇彁闂?.."
+      placeholder="向马克思提问..."
       rows="1"
       oninput="resize(this)"
       onkeydown="onKey(event)"></textarea>
@@ -1026,38 +1035,38 @@ body {
     </button>
   </div>
 
-  <!-- 璇煶杈撳叆 -->
+  <!-- 语音输入 -->
   <div class="voice-row-input hidden" id="voiceRow">
     <button class="hold-btn" id="holdBtn"
       onmousedown="hS(event)" onmouseup="hE(event)"
       ontouchstart="hS(event)" ontouchend="hE(event)"
       onmouseleave="hC(event)" ontouchcancel="hC(event)">
-      鎸変綇 璇磋瘽
+      按住 说话
     </button>
   </div>
 
   <div class="footer-quote" id="footerQuote">
-    "浜虹殑鏈川鏄竴鍒囩ぞ浼氬叧绯荤殑鎬诲拰銆?
+    "人的本质是一切社会关系的总和。"
   </div>
 </div>
 
-<!-- 鈺愨晲 鍘嗗彶渚ф粦闈㈡澘 鈺愨晲 -->
+<!-- ══ 历史侧滑面板 ══ -->
 <div class="hist-mask hidden" id="histMask" onclick="closeHistory()"></div>
 <div class="hist-panel hidden" id="histPanel">
  <div class="hist-hd">
- <span class="hist-title">鍘嗗彶瀵硅瘽</span>
- <button class="hist-new" onclick="newConversation()">+ 鏂板璇?/button>
+ <span class="hist-title">历史对话</span>
+ <button class="hist-new" onclick="newConversation()">+ 新对话</button>
  </div>
  <div class="hist-list" id="histList">
- <div class="hist-loading">鍔犺浇涓?..</div>
+ <div class="hist-loading">加载中...</div>
  </div>
 </div>
 
-<!-- 鈺愨晲 LIVE OVERLAY 鈺愨晲 -->
+<!-- ══ LIVE OVERLAY ══ -->
 <div class="live-overlay hidden" id="liveOverlay">
   <div class="lv-hd">
-    <button class="lv-back" onclick="exitLive()">鈫?閫€鍑?/button>
-    <span class="lv-title">瀹炴椂閫氳瘽</span>
+    <button class="lv-back" onclick="exitLive()">← 退出</button>
+    <span class="lv-title">实时通话</span>
     <span style="width:72px"></span>
   </div>
 
@@ -1066,7 +1075,7 @@ body {
     <video id="liveVidA" class="lv-vid" autoplay muted playsinline></video>
     <video id="liveVidB" class="lv-vid" autoplay muted playsinline></video>
     <div class="lv-gradient"></div>
-    <div class="lv-badge" id="lvBadge">馃摎 椹厠鎬濇鍦ㄩ槄璇汇€婅祫鏈銆?/div>
+    <div class="lv-badge" id="lvBadge">📚 马克思正在阅读《资本论》</div>
   </div>
 
   <div class="lv-subs">
@@ -1082,17 +1091,19 @@ body {
         <path d="M19 11a7 7 0 0 1-14 0M12 19v4M8 23h8"/>
       </svg>
     </button>
-    <div class="lv-mic-hint" id="lvHint">鐐瑰嚮楹﹀厠椋庡紑濮?/div>
+    <div class="lv-mic-hint" id="lvHint">点击麦克风开始</div>
   </div>
 </div>
 
 <script>
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// CONFIG 鈥?鎺ュ叆鏈湴鍚庣鏃跺彧鏀硅繖閲?// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-const API_BASE = window.location.origin  // 鏈湴鍚庣鍦板潃
+// ══════════════════════════════════════
+// CONFIG — 接入本地后端时只改这里
+// ══════════════════════════════════════
+const API_BASE = window.location.origin  // 本地后端地址
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// 鐘舵€?// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
+// 状态
+// ══════════════════════════════════════
 let history = []
 let sending = false
 let ttsOn = false
@@ -1111,21 +1122,21 @@ let lastReplyText = ''
 let activeVid = 'A'
 let currentAudio = null
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// 鍚嶈█绯荤粺
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
+// 名言系统
+// ══════════════════════════════════════
 const QUOTES = [
-  '"鍝插瀹朵滑鍙槸鐢ㄤ笉鍚屾柟寮忚В閲婁笘鐣岋紝闂鍦ㄤ簬鏀瑰彉涓栫晫銆?',
-  '"浜虹殑鏈川鏄竴鍒囩ぞ浼氬叧绯荤殑鎬诲拰銆?',
-  '"鐞嗚涓€缁忔帉鎻＄兢浼楋紝涔熶細鍙樻垚鐗╄川鍔涢噺銆?',
-  '"鍘嗗彶涓嶈繃鏄拷姹傜潃鑷繁鐩殑鐨勪汉鐨勬椿鍔ㄣ€?',
-  '"璧勬湰鏉ュ埌涓栭棿锛屾瘡涓瘺瀛旈兘婊寸潃琛€鍜岃偖鑴忕殑涓滆タ銆?',
-  '"宸ヤ汉娌℃湁绁栧浗锛屼笉鑳藉墺澶轰粬浠病鏈夌殑涓滆タ銆?',
+  '"哲学家们只是用不同方式解释世界，问题在于改变世界。"',
+  '"人的本质是一切社会关系的总和。"',
+  '"理论一经掌握群众，也会变成物质力量。"',
+  '"历史不过是追求着自己目的的人的活动。"',
+  '"资本来到世间，每个毛孔都滴着血和肮脏的东西。"',
+  '"工人没有祖国，不能剥夺他们没有的东西。"',
 ]
 const FOOTER_QUOTES = [
-  '"浜虹殑鏈川鏄竴鍒囩ぞ浼氬叧绯荤殑鎬诲拰銆?',
-  '"鎵瑰垽鐨勬鍣ㄤ笉鑳戒唬鏇挎鍣ㄧ殑鎵瑰垽銆?',
-  '"瀛樺湪鍐冲畾鎰忚瘑銆?',
+  '"人的本质是一切社会关系的总和。"',
+  '"批判的武器不能代替武器的批判。"',
+  '"存在决定意识。"',
 ]
 let qi = 0, fqi = 0
 
@@ -1153,9 +1164,9 @@ document.getElementById('quoteText').style.transition = 'opacity .5s ease'
 setInterval(rotatePortraitQuote, 6000)
 setInterval(rotateFooterQuote, 8000)
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// 妯″紡鍒囨崲
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
+// 模式切换
+// ══════════════════════════════════════
 function setMode(mode) {
   currentMode = mode
   const textRow = document.getElementById('textRow')
@@ -1169,26 +1180,26 @@ function setMode(mode) {
     voiceRow.classList.add('hidden')
     tabText.classList.add('on')
     tabVoice.classList.remove('on')
-    if (hdModeText) hdModeText.textContent = '鏂囧瓧浜ゆ祦'
+    if (hdModeText) hdModeText.textContent = '文字交流'
   } else {
     textRow.classList.add('hidden')
     voiceRow.classList.remove('hidden')
     tabText.classList.remove('on')
     tabVoice.classList.add('on')
-    if (hdModeText) hdModeText.textContent = '璇煶浜ゆ祦'
+    if (hdModeText) hdModeText.textContent = '语音交流'
   }
 }
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// 鐘舵€佹爮鏇存柊
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
+// 状态栏更新
+// ══════════════════════════════════════
 const STATUS_MAP = {
-  idle:      '馃摎 椹厠鎬濇鍦ㄩ槄璇汇€婅祫鏈銆?,
-  listening: '馃帳 椹厠鎬濇鍦ㄨ亞鍚綘鐨勯棶棰?,
-  thinking:  '馃摉 椹厠鎬濇鍦ㄦ煡闃呰憲浣?,
-  speaking:  '馃挰 椹厠鎬濇鍦ㄥ洖绛?,
-  citing:    '馃摐 寮曠粡鎹吀',
-  emphasis:  '鉁?椹厠鎬濆己璋冭鐐?,
+  idle:      '📚 马克思正在阅读《资本论》',
+  listening: '🎤 马克思正在聆听你的问题',
+  thinking:  '📖 马克思正在查阅著作',
+  speaking:  '💬 马克思正在回答',
+  citing:    '📜 引经据典',
+  emphasis:  '✊ 马克思强调观点',
 }
 function setStatus(state) {
   const bar = document.getElementById('statusBarText')
@@ -1202,45 +1213,45 @@ function setStatus(state) {
   }
 }
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// 瑙嗛鐘舵€佹満锛堝疄鏃堕€氳瘽鐢級
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
+// 视频状态机（实时通话用）
+// ══════════════════════════════════════
 const SPEAKING_GROUP = ['speakA','speakB','theory','citing','emphA','emphB','encourage','summary']
 const VIDEO_MAP = {
-  idle:      'videos/瑙嗛01锛氬緟鏈虹姸鎬?mp4',
-  thinkA:    'videos/瑙嗛02锛氭€濊€冪姸鎬丄.mp4',
-  thinkB:    'videos/瑙嗛03锛氭€濊€冪姸鎬丅.mp4',
-  speakA:    'videos/瑙嗛04锛氭櫘閫氳瑙.mp4',
-  speakB:    'videos/瑙嗛05锛氭櫘閫氳瑙.mp4',
-  theory:    'videos/瑙嗛06锛氱悊璁鸿鎺?mp4',
-  citing:    'videos/瑙嗛07锛氱炕涔﹀紩鐢?mp4',
-  emphA:     'videos/瑙嗛08锛氬己璋冭鐐笰.mp4',
-  emphB:     'videos/瑙嗛09锛氬己璋冭鐐笲.mp4',
-  encourage: 'videos/瑙嗛10锛氶紦鍔卞鐢?mp4',
-  summary:   'videos/瑙嗛11锛氭€荤粨褰掔撼.mp4',
-  closing:   'videos/瑙嗛12锛氱粨鏉熻.mp4',
+  idle:      'videos/视频01：待机状态.mp4',
+  thinkA:    'videos/视频02：思考状态A.mp4',
+  thinkB:    'videos/视频03：思考状态B.mp4',
+  speakA:    'videos/视频04：普通讲解A.mp4',
+  speakB:    'videos/视频05：普通讲解B.mp4',
+  theory:    'videos/视频06：理论讲授.mp4',
+  citing:    'videos/视频07：翻书引用.mp4',
+  emphA:     'videos/视频08：强调观点A.mp4',
+  emphB:     'videos/视频09：强调观点B.mp4',
+  encourage: 'videos/视频10：鼓励学生.mp4',
+  summary:   'videos/视频11：总结归纳.mp4',
+  closing:   'videos/视频12：结束语.mp4',
 }
 const BADGE_TEXT = {
-  idle:      '馃摎 椹厠鎬濇鍦ㄩ槄璇汇€婅祫鏈銆?,
-  thinkA:    '馃摉 椹厠鎬濇鍦ㄦ煡闃呰憲浣?,
-  thinkB:    '馃摉 椹厠鎬濇鍦ㄦ€濊€?,
-  speakA:    '馃挰 椹厠鎬濇鍦ㄥ洖绛?,
-  speakB:    '馃挰 椹厠鎬濇鍦ㄥ洖绛?,
-  theory:    '馃帗 鐞嗚璁叉巿',
-  citing:    '馃摐 寮曠粡鎹吀',
-  emphA:     '鉂?椹厠鎬濇鍦ㄥ弽闂?,
-  emphB:     '鉁?椹厠鎬濆己璋冭鐐?,
-  encourage: '馃尡 椹厠鎬濇鍦ㄩ紦鍔?,
-  summary:   '馃搵 鎬荤粨褰掔撼',
-  closing:   '馃摃 鏈浜ゆ祦鍗冲皢缁撴潫',
+  idle:      '📚 马克思正在阅读《资本论》',
+  thinkA:    '📖 马克思正在查阅著作',
+  thinkB:    '📖 马克思正在思考',
+  speakA:    '💬 马克思正在回答',
+  speakB:    '💬 马克思正在回答',
+  theory:    '🎓 理论讲授',
+  citing:    '📜 引经据典',
+  emphA:     '❓ 马克思正在反问',
+  emphB:     '✊ 马克思强调观点',
+  encourage: '🌱 马克思正在鼓励',
+  summary:   '📋 总结归纳',
+  closing:   '📕 本次交流即将结束',
 }
 var lastSwitchTime = 0
 var currentVidState = ''
 
 function setVideoState(state) {
-  // 绋冲畾鎬ц鍒?锛氬悓鐘舵€佷笉閲嶅鍒囨崲
+  // 稳定性规则1：同状态不重复切换
   if (currentVidState === state) return
-  // 绋冲畾鎬ц鍒?锛氶潪idle鐘舵€佽窛涓婃鍒囨崲涓嶈冻3000姣鐩存帴return
+  // 稳定性规则2：非idle状态距上次切换不足3000毫秒直接return
   if (state !== 'idle' && Date.now() - lastSwitchTime < 3000) return
   var src = VIDEO_MAP[state]
   if (!src) return
@@ -1258,10 +1269,11 @@ function setVideoState(state) {
     activeVid = nxtId
     setTimeout(function() { curEl.pause(); curEl.src = '' }, 600)
   }
-  // 闈瀕oop瑙嗛鎾畬鎵嶅厑璁告崲涓嬩竴涓?  if (SPEAKING_GROUP.indexOf(state) >= 0) {
+  // 非loop视频播完才允许换下一个
+  if (SPEAKING_GROUP.indexOf(state) >= 0) {
     nxtEl.onended = function() {
       if (liveAudioPlaying) {
-        // 鍚岀粍闅忔満杞挱
+        // 同组随机轮播
         var alt = state
         while (alt === state) {
           alt = SPEAKING_GROUP[Math.floor(Math.random() * SPEAKING_GROUP.length)]
@@ -1280,24 +1292,26 @@ function setVideoState(state) {
 
 function pickVideoByReply(text) {
   if (!text) return 'speakA'
-  if (text.includes('銆?) || text.includes('钁椾綔') || text.includes('鎵嬬')) return 'citing'
-  if (text.includes('鎬荤粨') || text.includes('缁间笂') || text.includes('鍥犳')) return 'summary'
-  if (text.includes('鐞嗚') || text.includes('杈╄瘉') || text.includes('鍞墿')) return 'theory'
-  if (text.includes('锛?) && text.length < 80) return 'emphA'
-  if (text.includes('蹇呴』') || text.includes('缁濅笉') || text.includes('涓嶅緱涓?)) return 'emphB'
+  if (text.includes('《') || text.includes('著作') || text.includes('手稿')) return 'citing'
+  if (text.includes('总结') || text.includes('综上') || text.includes('因此')) return 'summary'
+  if (text.includes('理论') || text.includes('辩证') || text.includes('唯物')) return 'theory'
+  if (text.includes('！') && text.length < 80) return 'emphA'
+  if (text.includes('必须') || text.includes('绝不') || text.includes('不得不')) return 'emphB'
   return Math.random() > 0.5 ? 'speakA' : 'speakB'
 }
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// TTS 寮€鍏?// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
+// TTS 开关
+// ══════════════════════════════════════
 function toggleTTS() {
   ttsOn = !ttsOn
   const btn = document.getElementById('ttsToggleBtn')
   if (btn) btn.style.borderColor = ttsOn ? 'var(--gold-dim)' : ''
 }
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// 鏂囧瓧鍙戦€?// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
+// 文字发送
+// ══════════════════════════════════════
 function resize(el) {
   el.style.height = 'auto'
   el.style.height = Math.min(el.scrollHeight, 90) + 'px'
@@ -1350,7 +1364,7 @@ async function send() {
     }
   } catch (e) {
     removeEl(tid)
-    // 婕旂ず妯″紡锛氭病鏈夊悗绔椂鏄剧ず绀轰緥鍥炵瓟
+    // 演示模式：没有后端时显示示例回答
     const demoReply = getDemoReply(text)
     addA(demoReply, null)
     history.push({ role: 'assistant', content: demoReply })
@@ -1362,23 +1376,23 @@ async function send() {
   scrollBottom()
 }
 
-// 婕旂ず鍥炵瓟锛堝悗绔湭杩炴帴鏃讹級
+// 演示回答（后端未连接时）
 function getDemoReply(q) {
-  if (q.includes('鍓╀綑浠峰€?)) return '鍔冲姩鑰呭垱閫犵殑浠峰€艰秴鍑哄叾宸ヨ祫鐨勯儴鍒嗭紝渚挎槸鍓╀綑浠峰€尖€斺€旇祫鏈鏃犲伩鍗犳湁鐨勯偅浠姐€傝繖涓嶆槸甯傚満鐨勫叕骞筹紝鑰屾槸鍓ュ墛鐨勬湰璐ㄣ€備綘浠ヤ负涔板崠鍙屾柟骞崇瓑锛屽嵈蹇樹簡宸ヤ汉鍗栧嚭鐨勬槸鑷繁鐨勭敓鍛芥椂闂淬€?
-  if (q.includes('寮傚寲')) return '褰撳姵鍔ㄤ笉鍐嶅睘浜庡姵鍔ㄨ€咃紝褰撲骇鍝佹垚涓哄紓宸辩殑鍔涢噺鍘嬭揩鍒涢€犺€咃紝杩欎究鏄紓鍖栥€傚伐浜鸿秺鏄姫鍔涳紝浠栨墍瀵圭珛鐨勪笘鐣屼究瓒婂己澶с€傝繖鏄祫鏈富涔夌敓浜у叧绯荤殑蹇呯劧閫昏緫锛岃€岄潪涓汉鐨勬偛鍓с€?
-  if (q.includes('闈掑勾')) return '闈掑勾浜洪鍏堣鎺屾彙浜虹被绉疮鐨勫叏閮ㄧ煡璇嗐€傛病鏈夎繖涓熀纭€锛屾墍璋撶悊鎯充笉杩囨槸绌鸿皥銆傜煡璇嗕笉鏄灧閿侊紝鑰屾槸鏀瑰彉涓栫晫鐨勬鍣ㄢ€斺€斾絾鍓嶆彁鏄綘鐪熸鎷ユ湁瀹冿紝鑰岄潪琚畠鎷ユ湁銆?
-  return '杩欐槸涓€涓Е鍙婂巻鍙叉牴鏈殑闂銆備竴鍒囩幇璞＄殑鑳屽悗锛岄兘鏄敓浜у姏涓庣敓浜у叧绯荤殑鐭涚浘杩愬姩銆備綘鎵€瑙佺殑琛ㄩ潰锛屼笉杩囨槸娣卞眰缁撴瀯鐨勬姇褰便€傚瓨鍦ㄥ喅瀹氭剰璇嗏€斺€斾粠杩欓噷鍑哄彂锛屾垜浠啀寰€娣卞璋堛€?
+  if (q.includes('剩余价值')) return '劳动者创造的价值超出其工资的部分，便是剩余价值——资本家无偿占有的那份。这不是市场的公平，而是剥削的本质。你以为买卖双方平等，却忘了工人卖出的是自己的生命时间。'
+  if (q.includes('异化')) return '当劳动不再属于劳动者，当产品成为异己的力量压迫创造者，这便是异化。工人越是努力，他所对立的世界便越强大。这是资本主义生产关系的必然逻辑，而非个人的悲剧。'
+  if (q.includes('青年')) return '青年人首先要掌握人类积累的全部知识。没有这个基础，所谓理想不过是空谈。知识不是枷锁，而是改变世界的武器——但前提是你真正拥有它，而非被它拥有。'
+  return '这是一个触及历史根本的问题。一切现象的背后，都是生产力与生产关系的矛盾运动。你所见的表面，不过是深层结构的投影。存在决定意识——从这里出发，我们再往深处谈。'
 }
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// 璇煶娑堟伅锛堟寜浣忚璇濓級
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
+// 语音消息（按住说话）
+// ══════════════════════════════════════
 function hS(e) {
   e.preventDefault()
   if (isRec) return
   shouldSend = false
   const btn = document.getElementById('holdBtn')
-  btn.classList.add('pr'); btn.textContent = '鏉惧紑 鍙戦€?
+  btn.classList.add('pr'); btn.textContent = '松开 发送'
   startRec()
 }
 function hE(e) {
@@ -1386,7 +1400,7 @@ function hE(e) {
   if (!isRec) return
   shouldSend = true
   const btn = document.getElementById('holdBtn')
-  btn.classList.remove('pr'); btn.textContent = '鎸変綇 璇磋瘽'
+  btn.classList.remove('pr'); btn.textContent = '按住 说话'
   if (recTimer) { clearInterval(recTimer); recTimer = null }
   isRec = false
   if (mr && mr.state === 'recording') mr.stop()
@@ -1396,7 +1410,7 @@ function hC(e) {
   if (!isRec) return
   shouldSend = false
   const btn = document.getElementById('holdBtn')
-  btn.classList.remove('pr'); btn.textContent = '鎸変綇 璇磋瘽'
+  btn.classList.remove('pr'); btn.textContent = '按住 说话'
   isRec = false
   if (mr && mr.state === 'recording') mr.stop()
 }
@@ -1420,10 +1434,10 @@ function startRec() {
 }
 async function sendVoice(chunks, dur) {
   hideIdle()
-  // 璇煶姘旀场
+  // 语音气泡
   const vDiv = document.createElement('div')
   vDiv.className = 'voice-row'
-  vDiv.innerHTML = `<div class="voice-bbl"><span class="voice-wave">馃帳</span>${dur}" 璇煶娑堟伅</div>`
+  vDiv.innerHTML = `<div class="voice-bbl"><span class="voice-wave">🎤</span>${dur}" 语音消息</div>`
   document.getElementById('dialogue').appendChild(vDiv)
   scrollBottom()
 
@@ -1453,18 +1467,18 @@ async function sendVoice(chunks, dur) {
     else setTimeout(() => setStatus('idle'), 3000)
   } catch (e) {
     removeEl(tid)
-    addA('璇煶澶勭悊鍑洪敊锛岃閲嶈瘯', null)
+    addA('语音处理出错，请重试', null)
     setStatus('idle')
   }
   scrollBottom()
 }
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// 瀹炴椂閫氳瘽
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// 瀹炴椂閫氳瘽 HTTP SSE 妯″紡
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
+// 实时通话
+// ══════════════════════════════════════
+// ══════════════════════════════════════
+// 实时通话 HTTP SSE 模式
+// ══════════════════════════════════════
 let liveRecState = 'idle'
 let liveMediaRec = null, liveRecChunks = [], liveMicStream = null
 let liveVADTimer = null, liveVADSilent = 0, liveVADSpeaking = false
@@ -1472,14 +1486,14 @@ let liveAudioCtx = null, liveAnalyser = null
 
 function enterLive() {
   document.getElementById('liveOverlay').classList.remove('hidden')
-  document.getElementById('hdModeText').textContent = '瀹炴椂閫氳瘽'
+  document.getElementById('hdModeText').textContent = '实时通话'
   setVideoState('idle')
   lastSwitchTime = 0
   liveActive = true
 }
 function exitLive() {
   stopLiveMicHTTP()
-  document.getElementById('hdModeText').textContent = '鏂囧瓧浜ゆ祦'
+  document.getElementById('hdModeText').textContent = '文字交流'
   setVideoState('closing')
   setTimeout(function() {
     document.getElementById('liveOverlay').classList.add('hidden')
@@ -1494,20 +1508,20 @@ function exitLive() {
 function toggleLiveMic(btn) {
   if (liveRecState !== 'idle' && liveRecState !== 'stopped') {
     stopLiveMicHTTP()
-    document.getElementById('lvHint').textContent = '鐐瑰嚮楹﹀厠椋庡紑濮?
+    document.getElementById('lvHint').textContent = '点击麦克风开始'
   } else {
     startLiveMicHTTP(btn)
   }
 }
 function startLiveMicHTTP(btn) {
   if (btn) btn.classList.add('on')
-  document.getElementById('lvHint').textContent = '姝ｅ湪鍚姩楹﹀厠椋?..'
+  document.getElementById('lvHint').textContent = '正在启动麦克风...'
   liveRecState = 'starting'
   navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
     .then(function(stream) {
       liveMicStream = stream
       liveRecState = 'recording'
-      document.getElementById('lvHint').textContent = '姝ｅ湪鑱嗗惉...'
+      document.getElementById('lvHint').textContent = '正在聆听...'
       setVideoState('idle')
       liveAudioCtx = new (window.AudioContext || window.webkitAudioContext)()
       if (liveAudioCtx.state === 'suspended') liveAudioCtx.resume()
@@ -1528,7 +1542,7 @@ function startLiveMicHTTP(btn) {
         var hasVoice = maxV > 0.03
         if (hasVoice && !liveVADSpeaking) {
           liveVADSpeaking = true; liveVADSilent = 0
-          document.getElementById('lvHint').textContent = '姝ｅ湪鍚偍璇磋瘽...'
+          document.getElementById('lvHint').textContent = '正在听您说话...'
         } else if (!hasVoice && liveVADSpeaking) {
           liveVADSilent += 200
           if (liveVADSilent >= 2200) {
@@ -1540,7 +1554,7 @@ function startLiveMicHTTP(btn) {
     })
     .catch(function(e) {
       console.error('[liveHTTP] mic failed:', e)
-      document.getElementById('lvHint').textContent = '楹﹀厠椋庡け璐? ' + e.message
+      document.getElementById('lvHint').textContent = '麦克风失败: ' + e.message
       liveRecState = 'idle'
     })
 }
@@ -1565,19 +1579,19 @@ function startRecSegment() {
 function finishSegAndSend() {
   if (liveMediaRec && liveMediaRec.state === 'recording') {
     liveVADSpeaking = false
-    document.getElementById('lvHint').textContent = '澶勭悊涓?..'
+    document.getElementById('lvHint').textContent = '处理中...'
     liveMediaRec.stop()
   }
 }
 function sendSegHTTP(chunks) {
   if (liveRecState === 'stopped' || liveRecState === 'idle') return
   liveRecState = 'waiting'
-  document.getElementById('lvHint').textContent = '椹厠鎬濇鍦ㄦ€濊€?
+  document.getElementById('lvHint').textContent = '马克思正在思考'
   var blob = new Blob(chunks, { type: 'audio/webm' })
   var reader = new FileReader()
   reader.onload = function() {
     var b64 = reader.result.split(',')[1]
-    // 绗竴姝ワ細鍙仛璇煶璇嗗埆锛屼笉闇€瑕丩LM鍥炲锛坈hat_stream浼氬啀鍋氾級
+    // 第一步：只做语音识别，不需要LLM回复（chat_stream会再做）
     fetch(API_BASE + '/asr', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1607,7 +1621,7 @@ function sendSegHTTP(chunks) {
         tlog.appendChild(marxLine)
       }
       if (transcript) history.push({ role: 'user', content: transcript })
-      document.getElementById('lvHint').textContent = '椹厠鎬濇鍦ㄦ€濊€?
+      document.getElementById('lvHint').textContent = '马克思正在思考'
       fetch(API_BASE + '/chat_stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1622,7 +1636,7 @@ function sendSegHTTP(chunks) {
           rdr.read().then(function(result) {
             if (result.done) {
               if (history) { history.push({role:'assistant', content: fullReply}); if (history.length > 20) history = history.slice(-20) }
-              // 娴佺粨鏉燂紝濡傛灉闊抽宸叉挱瀹屽垯鍒噄dle
+              // 流结束，如果音频已播完则切idle
               if (!liveAudioPlaying && liveAudioQueue.length === 0) {
                 setVideoState('idle')
               }
@@ -1639,7 +1653,7 @@ function sendSegHTTP(chunks) {
                 var evt = JSON.parse(line.substring(6))
                 if (evt.type === 'text') {
                   fullReply += evt.delta
-                  // 鏂囧瓧鐙珛鏄剧ず锛歋SE娴佹潵灏辨洿鏂帮紝涓嶇瓑闊抽
+                  // 文字独立显示：SSE流来就更新，不等音频
                   if (marxLine) marxLine.textContent = fullReply
                   var elMarx = document.getElementById('lvMarx')
                   if (elMarx) elMarx.textContent = fullReply
@@ -1685,7 +1699,7 @@ function stopLiveMicHTTP() {
 function resumeListenHTTP() {
   if (liveRecState !== 'stopped' && liveRecState !== 'idle') {
     liveRecState = 'recording'
-    document.getElementById('lvHint').textContent = '姝ｅ湪鑱嗗惉...'
+    document.getElementById('lvHint').textContent = '正在聆听...'
     setVideoState('idle')
     startRecSegment()
   }
@@ -1696,14 +1710,14 @@ function consumeLiveAudioHTTP() {
   liveAudioPlaying = true
   var b64 = liveAudioQueue.shift()
   var audio = decodeB64Audio(b64)
-  document.getElementById('lvHint').textContent = '姝ｅ湪璇磋瘽...'
+  document.getElementById('lvHint').textContent = '正在说话...'
   audio.play().then(function() {
     setVideoState(pickVideoByReply(lastReplyText || ''))
   }).catch(function(){})
   audio.onended = function() {
     if (liveAudioQueue.length === 0) {
       liveAudioPlaying = false
-      // 鏁存鍥炲鎾畬 -> 鍒囧洖鑱嗗惉
+      // 整段回复播完 -> 切回聆听
       setVideoState('idle')
     } else {
       consumeLiveAudioHTTP()
@@ -1711,9 +1725,9 @@ function consumeLiveAudioHTTP() {
   }
 }
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// 闊抽鎾斁
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
+// 音频播放
+// ══════════════════════════════════════
 function decodeB64Audio(b64) {
   var bin = atob(b64), bytes = new Uint8Array(bin.length)
   for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
@@ -1724,18 +1738,18 @@ function playB64(b64, btn, onEnd) {
   if (currentAudio) { currentAudio.pause(); currentAudio = null }
   var audio = decodeB64Audio(b64)
   currentAudio = audio
-  if (btn) { btn.classList.add('playing'); btn.textContent = '鈴?鎾斁涓? }
+  if (btn) { btn.classList.add('playing'); btn.textContent = '⏹ 播放中' }
   audio.play().catch(function(){})
   audio.onended = function() {
     currentAudio = null
-    if (btn) { btn.classList.remove('playing'); btn.textContent = '鈻?鑱嗗惉' }
+    if (btn) { btn.classList.remove('playing'); btn.textContent = '▶ 聆听' }
     if (onEnd) onEnd()
   }
 }
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
-// DOM 鎿嶄綔
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
+// DOM 操作
+// ══════════════════════════════════════
 function hideIdle() {
   var p = document.getElementById('idlePanel')
   if (p) p.style.display = 'none'
@@ -1780,13 +1794,13 @@ function esc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
 }
 
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
 // INIT
-// 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲
+// ══════════════════════════════════════
 setMode('text')
 setStatus('idle')
 
-// 鈹€鈹€ 鎬濊鲸/寮曠敤妯″紡寮€鍏?鈹€鈹€
+// ── 思辨/引用模式开关 ──
 let modeFlags = { sibian: false, yinyong: false }
 
 function toggleMode(type) {
@@ -1807,12 +1821,12 @@ function getMessageWithPrefix() {
   const box = document.getElementById('ibox')
   let text = box.value.trim()
   if (!text) return ''
-  if (modeFlags.sibian) text = '銆愭€濊鲸:銆? + text
-  if (modeFlags.yinyong) text = '銆愬紩鐢?銆? + text
+  if (modeFlags.sibian) text = '【思辨:】' + text
+  if (modeFlags.yinyong) text = '【引用:】' + text
   return text
 }
 
-// 鈹€鈹€ 鍘嗗彶瀵硅瘽 鈹€鈹€
+// ── 历史对话 ──
 let currentConvId = null
 
 function openHistory() {
@@ -1834,12 +1848,12 @@ function closeHistory() {
 
 async function loadHistoryList() {
   const list = document.getElementById('histList')
-  list.innerHTML = '<div class="hist-loading">鍔犺浇涓?..</div>'
+  list.innerHTML = '<div class="hist-loading">加载中...</div>'
   try {
     const res = await fetch(API_BASE + '/conversations')
     const data = await res.json()
     if (!data.length) {
-      list.innerHTML = '<div class="hist-loading">杩樻病鏈夊巻鍙插璇?/div>'
+      list.innerHTML = '<div class="hist-loading">还没有历史对话</div>'
       return
     }
     list.innerHTML = data.map(item => `
@@ -1848,11 +1862,11 @@ async function loadHistoryList() {
           <div class="hist-item-title">${item.title}</div>
           <div class="hist-item-time">${item.updated_at}</div>
         </div>
-        <button class="hist-item-del" onclick="event.stopPropagation();deleteConversation('${item.id}',this)">鉁?/button>
+        <button class="hist-item-del" onclick="event.stopPropagation();deleteConversation('${item.id}',this)">✕</button>
       </div>
     `).join('')
   } catch(e) {
-    list.innerHTML = '<div class="hist-loading">鍔犺浇澶辫触</div>'
+    list.innerHTML = '<div class="hist-loading">加载失败</div>'
   }
 }
 
@@ -1877,7 +1891,7 @@ async function loadConversation(id) {
     scrollBottom()
     closeHistory()
   } catch(e) {
-    console.error('[history] 鍔犺浇澶辫触', e)
+    console.error('[history] 加载失败', e)
   }
 }
 

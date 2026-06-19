@@ -127,22 +127,18 @@ def get_model():
     """预先加载 whisper 模型（避免 multiprocessing 冲突）"""
     global WHISPER
     if WHISPER is None:
-        try:
-            from faster_whisper import WhisperModel
-            import torch
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            compute = "float16" if device == "cuda" else "int8"
-            print(f"[ASR] 加载 faster-whisper small, device={device}, compute={compute}")
-            WHISPER = WhisperModel("small", device=device, compute_type=compute)
-            print("[ASR] 加载完成")
-        except ImportError:
-            print("[ASR] faster-whisper 未安装，跳过本地Whisper")
-            WHISPER = False  # 标记为不可用
-    return WHISPER if WHISPER is not False else None
+        from faster_whisper import WhisperModel
+        import torch
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        compute = "float16" if device == "cuda" else "int8"
+        print(f"[ASR] 加载 faster-whisper small, device={device}, compute={compute}")
+        WHISPER = WhisperModel("small", device=device, compute_type=compute)
+        print("[ASR] 加载完成")
+    return WHISPER
 
 
 def transcribe(audio_bytes: bytes) -> str:
-    """语音识别，返回文本。优先用讯飞云端ASR，兜底用本地Whisper"""
+    """语音识别，返回文字 — 优先用讯飞云端ASR，兜底用本地Whisper"""
     # 优先用讯飞云端ASR
     if os.getenv('XFYUN_APPID'):
         text = transcribe_xfyun(audio_bytes)
@@ -187,7 +183,7 @@ def transcribe(audio_bytes: bytes) -> str:
 
 def transcribe_xfyun(audio_bytes: bytes) -> str:
     """
-    用讯飞云端API识别音频，返回文本。
+    用讯飞云端API识别音频，返回文字
     audio_bytes: 任意格式音频
     """
     APPID = os.getenv('XFYUN_APPID','')
@@ -198,7 +194,7 @@ def transcribe_xfyun(audio_bytes: bytes) -> str:
         print('[ASR] 讯飞配置缺失，跳过')
         return ''
 
-    # 用ffmpeg转为PCM格式：16kHz单声道16bit
+    # 用ffmpeg转为PCM格式（16kHz单声道16bit）
     ff = find_ffmpeg()
     if not ff:
         print('[ASR] ffmpeg未找到，无法转码给讯飞')
@@ -228,10 +224,6 @@ def transcribe_xfyun(audio_bytes: bytes) -> str:
             try: os.unlink(p)
             except: pass
 
-    if len(pcm_data) < 1600:
-        print(f'[ASR] PCM 太短 ({len(pcm_data)} bytes)，跳过讯飞')
-        return ''
-
     # 生成鉴权URL
     def create_url():
         url = 'wss://iat-api.xfyun.cn/v2/iat'
@@ -255,7 +247,7 @@ def transcribe_xfyun(audio_bytes: bytes) -> str:
         data = json.loads(message)
         code = data.get('code', -1)
         if code != 0:
-            print(f'[ASR] 讯飞错误: {code} {data.get("message","")}')
+            print(f'[ASR] 讯飞错误: {code}')
             done_event.set()
             return
         cws_data = data.get('data', {})
