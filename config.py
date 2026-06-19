@@ -1,17 +1,9 @@
 from dotenv import load_dotenv
 import os
-import sys
 
-# 尝试加载 .env 文件（本地开发用），不存在则直接读环境变量（Railway 用）
-_env_path = os.path.join(os.path.dirname(__file__), '.env')
-if os.path.exists(_env_path):
-    load_dotenv(_env_path)
-else:
-    load_dotenv()  # 走系统环境变量
+load_dotenv()
 
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
-if not DEEPSEEK_API_KEY:
-    print("[FATAL] DEEPSEEK_API_KEY is NOT set!", file=sys.stderr)
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 MODEL_NAME = "deepseek-chat"
 
