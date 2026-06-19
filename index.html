@@ -1099,7 +1099,7 @@ body {
 // ══════════════════════════════════════
 // CONFIG — 接入本地后端时只改这里
 // ══════════════════════════════════════
-const API_BASE = window.location.origin  // 本地后端地址
+const API_BASE = ''
 
 // ══════════════════════════════════════
 // 状态
@@ -1444,30 +1444,32 @@ async function sendVoice(chunks, dur) {
   setStatus('thinking')
   const tid = addThinking()
 
-  const blob = new Blob(chunks, { type: 'audio/webm' })
-  const b64 = await new Promise(res => {
-    const r = new FileReader()
-    r.onload = () => res(r.result.split(',')[1])
-    r.readAsDataURL(blob)
-  })
-
+  // 浏览器内置语音识别（跳过后端 ASR）
   try {
-    const resp = await fetch(API_BASE + '/chat_voice', {
+    const transcript = await browserSpeechRecognition()
+    if (!transcript) {
+      removeEl(tid); addA('未能识别到语音，请重试', null); setStatus('idle')
+      scrollBottom(); return
+    }
+    // 将语音气泡替换为文字气泡
+    vDiv.innerHTML = `<div class="voice-bbl"><span class="voice-wave">🎤</span><span style="margin-left:6px">${transcript}</span></div>`
+    history.push({ role: 'user', content: transcript })
+
+    const resp = await fetch(API_BASE + '/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ audio_b64: b64, history })
+      body: JSON.stringify({ message: transcript, history: history.slice(-16) })
     })
     const data = await resp.json()
     removeEl(tid)
-    if (data.transcript) history.push({ role: 'user', content: data.transcript })
-    addA(data.reply, data.audio); autoSaveConversation()
-    history.push({ role: 'assistant', content: data.reply })
-    setStatus('speaking')
-    if (data.audio) playB64(data.audio, null, () => setStatus('idle'))
-    else setTimeout(() => setStatus('idle'), 3000)
+    const reply = data.reply || data.text || '(无回复)'
+    addA(reply, null)
+    history.push({ role: 'assistant', content: reply })
+    setStatus('idle')
+    autoSaveConversation()
   } catch (e) {
     removeEl(tid)
-    addA('语音处理出错，请重试', null)
+    addA('语音识别出错，请重试', null)
     setStatus('idle')
   }
   scrollBottom()
@@ -1586,75 +1588,92 @@ function finishSegAndSend() {
 function sendSegHTTP(chunks) {
   if (liveRecState === 'stopped' || liveRecState === 'idle') return
   liveRecState = 'waiting'
-  document.getElementById('lvHint').textContent = '马克思正在思考'
-  var blob = new Blob(chunks, { type: 'audio/webm' })
-  var reader = new FileReader()
-  reader.onload = function() {
-    var b64 = reader.result.split(',')[1]
-    // 第一步：只做语音识别，不需要LLM回复（chat_stream会再做）
-    fetch(API_BASE + '/asr', {
+  document.getElementById('lvHint').textContent = '正在识别语音...'
+
+  // 浏览器语音识别（跳过后端 ASR）
+  browserSpeechRecognition().then(function(transcript) {
+    if (!transcript.trim()) { resumeListenHTTP(); return }
+
+    var tlog = document.getElementById('lvTlog')
+    var elMarx = document.getElementById('lvMarx')
+    if (elMarx) elMarx.textContent = ''
+    var elUser = document.getElementById('lvUser')
+    if (elUser) elUser.textContent = transcript
+    if (tlog) {
+      var userLine = document.createElement('div')
+      userLine.className = 'tl-user'
+      userLine.textContent = transcript
+      tlog.appendChild(userLine)
+      tlog.scrollTop = tlog.scrollHeight
+    }
+    var marxLine = null
+    if (tlog) {
+      marxLine = document.createElement('div')
+      marxLine.className = 'tl-marx'
+      marxLine.textContent = ''
+      tlog.appendChild(marxLine)
+    }
+    if (transcript) history.push({ role: 'user', content: transcript })
+    document.getElementById('lvHint').textContent = '马克思正在思考'
+
+    fetch(API_BASE + '/chat_stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ audio_b64: b64 })
+      body: JSON.stringify({ message: transcript, history: history.slice(-8) })
     })
-    .then(function(r) { return r.json() })
-    .then(function(d) {
-      var transcript = d.text || d.transcript || ''
-      if (!transcript) { resumeListenHTTP(); return }
-      var tlog = document.getElementById('lvTlog')
-      var elMarx = document.getElementById('lvMarx')
-      if (elMarx) elMarx.textContent = ''
-      var elUser = document.getElementById('lvUser')
-      if (elUser) elUser.textContent = transcript
-      if (tlog) {
-        var userLine = document.createElement('div')
-        userLine.className = 'tl-user'
-        userLine.textContent = transcript
-        tlog.appendChild(userLine)
-        tlog.scrollTop = tlog.scrollHeight
-      }
-      var marxLine = null
-      if (tlog) {
-        marxLine = document.createElement('div')
-        marxLine.className = 'tl-marx'
-        marxLine.textContent = ''
-        tlog.appendChild(marxLine)
-      }
-      if (transcript) history.push({ role: 'user', content: transcript })
-      document.getElementById('lvHint').textContent = '马克思正在思考'
-      fetch(API_BASE + '/chat_stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: transcript, history: history.slice(-8) })
-      })
-      .then(function(resp) {
-        var rdr = resp.body.getReader()
-        var decoder = new TextDecoder()
-        var buf = ''
-        var fullReply = ''
-        function readChunk() {
-          rdr.read().then(function(result) {
-            if (result.done) {
-              if (history) { history.push({role:'assistant', content: fullReply}); if (history.length > 20) history = history.slice(-20) }
-              // 流结束，如果音频已播完则切idle
-              if (!liveAudioPlaying && liveAudioQueue.length === 0) {
-                setVideoState('idle')
-              }
-              resumeListenHTTP()
-              return
+    .then(function(resp) {
+      var rdr = resp.body.getReader()
+      var decoder = new TextDecoder()
+      var buf = ''
+      var fullReply = ''
+      function readChunk() {
+        rdr.read().then(function(result) {
+          if (result.done) {
+            if (history) { history.push({role:'assistant', content: fullReply}); if (history.length > 20) history = history.slice(-20) }
+            if (!liveAudioPlaying && liveAudioQueue.length === 0) {
+              setVideoState('idle')
             }
-            buf += decoder.decode(result.value, {stream: true})
-            var lines = buf.split('\n')
-            buf = lines.pop()
-            for (var i = 0; i < lines.length; i++) {
-              var line = lines[i].trim()
-              if (!line || !line.startsWith('data: ')) continue
-              try {
-                var evt = JSON.parse(line.substring(6))
-                if (evt.type === 'text') {
-                  fullReply += evt.delta
-                  // 文字独立显示：SSE流来就更新，不等音频
-                  if (marxLine) marxLine.textContent = fullReply
+            resumeListenHTTP()
+            return
+          }
+          buf += decoder.decode(result.value, {stream: true})
+          var lines = buf.split('\n')
+          buf = lines.pop()
+          for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim()
+            if (!line || !line.startsWith('data: ')) continue
+            try {
+              var evt = JSON.parse(line.substring(6))
+              if (evt.type === 'text') {
+                fullReply += evt.delta
+                if (marxLine) marxLine.textContent = fullReply
+                var elMarx = document.getElementById('lvMarx')
+                if (elMarx) elMarx.textContent = fullReply
+              } else if (evt.type === 'audio' && evt.audio) {
+                lastReplyText = fullReply
+                liveAudioQueue.push(evt.audio)
+                if (!liveAudioPlaying) consumeLiveAudioHTTP()
+              }
+            } catch(e) {}
+          }
+          readChunk()
+        }).catch(function(e) {
+          console.error('[liveSSE] read err:', e)
+          resumeListenHTTP()
+        })
+      }
+      readChunk()
+    })
+    .catch(function(e) {
+      console.error('[liveSSE] fetch err:', e)
+      resumeListenHTTP()
+    })
+  }).catch(function(e) {
+    console.error('[liveHTTP] speech rec err:', e)
+    // 语音识别失败（超时或无语音），恢复监听
+    resumeListenHTTP()
+  })
+}
                   var elMarx = document.getElementById('lvMarx')
                   if (elMarx) elMarx.textContent = fullReply
                 } else if (evt.type === 'audio' && evt.audio) {
@@ -1728,6 +1747,31 @@ function consumeLiveAudioHTTP() {
 // ══════════════════════════════════════
 // 音频播放
 // ══════════════════════════════════════
+// 浏览器语音识别（Web Speech API），跳过后端 ASR
+function browserSpeechRecognition() {
+  return new Promise(function(resolve, reject) {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) { reject(new Error('浏览器不支持语音识别')); return }
+    var rec = new SR()
+    rec.lang = 'zh-CN'
+    rec.continuous = false
+    rec.interimResults = false
+    rec.maxAlternatives = 1
+    rec.onresult = function(e) {
+      var text = e.results[0][0].transcript
+      resolve(text)
+    }
+    rec.onerror = function(e) { reject(e) }
+    rec.onend = function() { /* 正常结束 */ }
+    rec.start()
+    // 超时：10 秒没结果就放弃
+    setTimeout(function() {
+      try { rec.abort() } catch(e) {}
+      reject(new Error('语音识别超时'))
+    }, 10000)
+  })
+}
+
 function decodeB64Audio(b64) {
   var bin = atob(b64), bytes = new Uint8Array(bin.length)
   for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
