@@ -2,1055 +2,1931 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0e0a08">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1b1410">
 <title>对话·马克思</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&family=Noto+Sans+SC:wght@300;400;500&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
-:root{--bg:#0e0a08;--surface:#181210;--panel:#1f1814;--border:rgba(180,120,60,.18);--gold:#c8a96e;--gold-dim:rgba(200,169,110,.5);--red:#8b1a1a;--red-light:#c94040;--text:#e8ddd0;--text-dim:#8a7a6a;--marx-bg:rgba(139,26,26,.10);--user-bubble:#4a3020;--max-w:480px}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-serif;display:flex;flex-direction:column;max-width:var(--max-w);margin:0 auto;height:100dvh;position:relative}
-.header{flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:10px;z-index:10}
-.av{width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0}
-.av img{width:100%;height:100%;object-fit:cover}
-.hinfo{flex:1;min-width:0}
-.hname{font-family:'Noto Serif SC',serif;font-size:16px;font-weight:700;color:var(--gold)}
-.hsub{font-size:11px;color:var(--text-dim)}
-.dot-st{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .3s}
-.mode-badge{flex-shrink:0;display:none;align-items:center;gap:6px;background:var(--panel);border-bottom:1px solid var(--border);padding:4px 14px;font-size:11px;color:var(--gold-dim)}
-.mode-badge.show{display:flex}
-.mode-badge .tag{background:rgba(200,169,110,.12);border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:10px;color:var(--gold)}
-#audioProgressBar{height:2px;width:100%;background:transparent;flex-shrink:0;position:relative;z-index:10}
-#audioProgressFill{height:100%;width:0;background:#6b1010;transition:width .15s linear}
-.msgs{flex:1;overflow-y:auto;padding:12px 12px 8px;display:flex;flex-direction:column;gap:0;scroll-behavior:smooth}
-.msgs::-webkit-scrollbar{width:3px}
-.msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
-.ts-div{text-align:center;font-size:10px;color:var(--text-dim);padding:12px 0 6px;letter-spacing:.04em}
-.ts-div::before,.ts-div::after{content:'';display:inline-block;width:30px;height:.5px;background:var(--border);vertical-align:middle;margin:0 8px}
-.msg{display:flex;gap:8px;align-items:flex-end;margin-bottom:2px;padding:2px 0}
-.msg.user{flex-direction:row-reverse}
-.msg.marx{margin-bottom:6px}
-.mav{width:30px;height:30px;border-radius:50%;flex-shrink:0;overflow:hidden;visibility:hidden}
-.mav.m{visibility:visible}
-.mav img{width:100%;height:100%;object-fit:cover}
-.msg.marx + .msg.marx .mav.m{visibility:hidden}
-.bubble{max-width:80%;padding:8px 12px;font-size:14px;line-height:1.65;word-break:break-word;position:relative}
-.marx .bubble{background:var(--marx-bg);border:1px solid rgba(139,26,26,.28);border-radius:2px 12px 12px 12px;font-family:'Noto Serif SC',serif;color:#e0d5c8}
-.user .bubble{background:var(--user-bubble);border:1px solid rgba(180,120,60,.15);border-radius:12px 2px 12px 12px}
-.bubble strong{color:var(--gold);font-weight:600}
-.cite{display:block;font-size:11px;color:var(--gold-dim);margin-top:6px;font-style:italic;border-top:1px solid rgba(200,169,110,.1);padding-top:5px}
-.vbub{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;padding:2px 0}
-.vico{font-size:18px;line-height:1}
-.vdur{font-size:12px;color:var(--text-dim);min-width:28px;font-variant-numeric:tabular-nums}
-.vwave{display:flex;align-items:center;gap:2px;height:20px}
-.vwave .bar{width:3px;border-radius:2px;background:var(--gold-dim);transition:height .12s}
-.vwave.pl .bar{background:var(--gold)}
-.user .vbub{flex-direction:row-reverse}
-.user .vdur{text-align:right}
-.spkr{display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:var(--gold-dim);cursor:pointer;background:none;border:none;font-family:inherit;padding:2px 6px;border-radius:10px;transition:background .15s}
-.spkr:hover{background:rgba(200,169,110,.08)}
-.spkr:active{transform:scale(.95)}
-.spkr.pl{color:var(--gold)}
-.think{display:flex;align-items:center;gap:5px;padding:6px 0}
-.td{width:5px;height:5px;border-radius:50%;background:var(--gold-dim);animation:blink .9s ease-in-out infinite}
-.td:nth-child(2){animation-delay:.22s}
-.td:nth-child(3){animation-delay:.44s}
-@keyframes blink{0%,80%,100%{transform:scale(1);opacity:.35}40%{transform:scale(1.4);opacity:1}}
-.err-bubble{background:rgba(184,64,32,.1);border:1px solid rgba(184,64,32,.3);border-radius:10px;padding:9px 13px;font-size:13px;color:#c05030}
-.input-area{flex-shrink:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 10px;padding-bottom:max(8px,env(safe-area-inset-bottom));position:relative}
-.irow{display:flex;gap:6px;align-items:center}
-.msw{width:34px;height:34px;border-radius:50%;background:none;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-dim);transition:all .18s}
-.msw:active{transform:scale(.9)}
-.msw.act{color:var(--red-light);border-color:var(--red-light)}
-.ibox{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:9px 14px;font-size:14px;color:var(--text);resize:none;font-family:inherit;line-height:1.5;max-height:80px;outline:none;transition:border-color .2s}
-.ibox::placeholder{color:var(--text-dim)}
-.ibox:focus{border-color:var(--gold-dim)}
-.hold{flex:1;height:38px;border-radius:20px;border:1px solid var(--border);background:var(--panel);color:var(--text-dim);font-size:14px;cursor:pointer;font-family:inherit;display:none;align-items:center;justify-content:center;user-select:none;transition:background .1s}
-.hold.show{display:flex}
-.hold:active{background:#2a1f18}
-.hold.pr{background:#3a2515;color:var(--gold);border-color:var(--red-light)}
-.pbtn{width:34px;height:34px;border-radius:50%;background:none;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-dim);font-size:18px;transition:all .18s}
-.pbtn:active{transform:scale(.9)}
-.pbtn.act{color:var(--gold);border-color:var(--gold-dim)}
-.sbtn{width:34px;height:34px;border-radius:50%;background:var(--red);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
-.sbtn:active{background:var(--red-light)}
-.sbtn svg{width:16px;height:16px;fill:white}
-.sbtn.hide{display:none}
-.ppanel{position:absolute;bottom:calc(100% + 4px);left:10px;right:10px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:none;flex-direction:column;gap:8px;z-index:20;box-shadow:0 -4px 20px rgba(0,0,0,.4)}
-.ppanel.show{display:flex}
-.ppi{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:13px;color:var(--text-dim)}
-.ppi:not(:last-child){border-bottom:1px solid var(--border)}
-.ppi .ppl{display:flex;align-items:center;gap:8px}
-.ppi .ppl .ic{font-size:16px}
-.tog{width:40px;height:22px;border-radius:11px;background:#3a3028;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
-.tog::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--text-dim);transition:transform .2s,background .2s}
-.tog.on{background:var(--red)}
-.tog.on::after{transform:translateX(18px);background:#fff}
-.ppb{background:none;border:1px solid var(--border);border-radius:14px;padding:5px 12px;font-size:12px;color:var(--text-dim);cursor:pointer;font-family:inherit;align-self:flex-start;transition:all .15s}
-.ppb:active{border-color:var(--red-light);color:var(--red-light)}
-.qtags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-.qtag{background:none;border:1px solid var(--border);border-radius:14px;padding:4px 10px;font-size:11px;color:var(--text-dim);cursor:pointer;font-family:inherit;transition:all .15s}
-.qtag:active{border-color:var(--gold-dim);color:var(--gold)}
-.pover{position:fixed;top:0;left:0;width:100%;height:100%;z-index:19;display:none}
-.pover.show{display:block}
-.live-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:999;display:flex;flex-direction:column;transition:opacity .25s}
-.live-overlay.hidden{display:none!important}
-.lv-header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--border)}
-.lv-back{background:none;border:none;color:var(--gold);font-size:14px;cursor:pointer;font-family:inherit;padding:4px 0}
-.lv-title{font-size:14px;font-weight:500;color:var(--text-dim)}
-.lv-body{flex:1;display:flex;flex-direction:column;align-items:center;padding:14px 10px;overflow-y:auto;gap:6px}
-.lv-avatar{width:80px;height:80px;border-radius:50%;border:2px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;margin-bottom:8px}
-.lv-avatar img{width:100%;height:100%;object-fit:cover}
-.lv-wave{width:240px;height:64px;flex-shrink:0;margin-bottom:10px}
-.lv-status{font-size:13px;color:var(--gold-dim);text-align:center;min-height:20px;margin-bottom:4px}
-.lv-status.listening{color:#d04040;font-weight:500}
-.lv-status.thinking{color:var(--gold)}
-.lv-status.speaking{color:#6a9}
-.lv-trans{font-size:13px;color:var(--text);text-align:center;max-width:90%;padding:6px 14px;background:var(--marx-bg);border-radius:10px;border:1px solid var(--border);display:none}
-.lv-trans.show{display:block}
-.lv-chat{display:none;width:100%;max-height:200px;overflow-y:auto;padding:4px 12px;margin-top:6px}
-.lv-chat.show{display:block}
-.lv-bubble{font-size:14px;line-height:1.6;color:var(--text);padding:8px 12px;background:var(--marx-bg);border-radius:10px;border:1px solid var(--border);margin-bottom:6px;text-align:left;white-space:pre-wrap;word-break:break-word}
-.lv-footer{flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--surface);border-top:1px solid var(--border)}
-.lv-mic{width:64px;height:64px;border-radius:50%;background:var(--red);border:3px solid var(--red-light);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;color:white;flex-shrink:0}
-.lv-mic:active{transform:scale(.92)}
-.lv-mic.lv-active{background:#b02020;border-color:white;animation:lvPulse 1s ease-in-out infinite}
-@keyframes lvPulse{0%,100%{box-shadow:0 0 0 0 rgba(200,60,60,.6)}50%{box-shadow:0 0 0 12px rgba(200,60,60,0)}}
-.callbtn{width:34px;height:34px;border-radius:50%;background:none;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-dim);transition:all .18s;font-size:18px}
-.callbtn:active{transform:scale(.9)}
+/* ══════════════════════════════════════
+   TOKEN SYSTEM — 马克思书房
+══════════════════════════════════════ */
+:root {
+  --bg:       #1b1410;
+  --bg2:      #231a14;
+  --bg3:      #2c2018;
+  --bg4:      #342518;
+  --gold:     #c8a36a;
+  --gold-l:   #e1c28a;
+  --gold-dim: rgba(200,163,106,.3);
+  --gold-glow:rgba(200,163,106,.12);
+  --red:      #8b2e2e;
+  --red-l:    #b84040;
+  --text:     #f5e7d0;
+  --text-dim: #cdbb9e;
+  --text-mu:  #8a7560;
+  --border:   rgba(200,163,106,.22);
+  --border-l: rgba(200,163,106,.42);
+  --r:        14px;
+  --r-sm:     8px;
+}
+
+/* ══════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans SC', sans-serif;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100dvh;
+  position: relative;
+}
+
+/* ══════════════════════════════════════
+   HEADER
+══════════════════════════════════════ */
+.hd {
+  flex-shrink: 0;
+  padding: 10px 18px 8px;
+  background: linear-gradient(180deg,#1b1410 0%,rgba(27,20,16,0) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  position: relative;
+  z-index: 10;
+}
+.hd-left { display: flex; flex-direction: column; gap: 1px; }
+.hd-name {
+  font-family: 'IM Fell English', 'Georgia', serif;
+  font-size: 20px;
+  color: var(--gold-l);
+  letter-spacing: .08em;
+  line-height: 1;
+}
+.hd-sub {
+  font-size: 10px;
+  color: var(--text-mu);
+  letter-spacing: .05em;
+}
+.hd-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.hd-loc {
+  font-size: 11px;
+  color: var(--text-mu);
+  font-style: italic;
+  font-family: 'IM Fell English', serif;
+}
+.hd-mode {
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: .04em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.hd-mode-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 5px var(--gold);
+  animation: modePulse 2s ease-in-out infinite;
+}
+@keyframes modePulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ══════════════════════════════════════
+   PORTRAIT SECTION（马克思图像区）
+══════════════════════════════════════ */
+.portrait-section {
+  flex-shrink: 0;
+  position: relative;
+  height: 42vh;
+  overflow: hidden;
+  margin: 0 14px;
+  border-radius: var(--r);
+  border: 1px solid var(--border-l);
+  box-shadow:
+    0 0 0 1px rgba(200,163,106,.06),
+    inset 0 0 60px rgba(0,0,0,.5),
+    0 8px 32px rgba(0,0,0,.6);
+}
+
+/* 四角装饰 */
+.corner { position: absolute; width: 18px; height: 18px; z-index: 5; }
+.corner::before, .corner::after {
+  content: '';
+  position: absolute;
+  background: var(--gold-l);
+  opacity: .8;
+}
+.corner.tl { top: 8px; left: 8px; }
+.corner.tl::before { width: 100%; height: 1.5px; top: 0; left: 0; }
+.corner.tl::after  { width: 1.5px; height: 100%; top: 0; left: 0; }
+.corner.tr { top: 8px; right: 8px; }
+.corner.tr::before { width: 100%; height: 1.5px; top: 0; right: 0; }
+.corner.tr::after  { width: 1.5px; height: 100%; top: 0; right: 0; }
+.corner.bl { bottom: 8px; left: 8px; }
+.corner.bl::before { width: 100%; height: 1.5px; bottom: 0; left: 0; }
+.corner.bl::after  { width: 1.5px; height: 100%; bottom: 0; left: 0; }
+.corner.br { bottom: 8px; right: 8px; }
+.corner.br::before { width: 100%; height: 1.5px; bottom: 0; right: 0; }
+.corner.br::after  { width: 1.5px; height: 100%; bottom: 0; right: 0; }
+
+/* 马克思照片 */
+.marx-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  transition: opacity .5s ease;
+}
+
+/* 视频（实时语音时覆盖照片） */
+.marx-video {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .5s ease;
+  z-index: 2;
+}
+.marx-video.active { opacity: 1; }
+
+/* 底部渐变遮罩 */
+.portrait-gradient {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 55%;
+  background: linear-gradient(
+    to top,
+    rgba(27,20,16,1) 0%,
+    rgba(27,20,16,.7) 40%,
+    transparent 100%
+  );
+  z-index: 3;
+}
+
+/* 名言浮层 */
+.portrait-quote {
+  position: absolute;
+  bottom: 14px;
+  left: 14px; right: 14px;
+  z-index: 4;
+  transition: opacity .5s ease;
+}
+.portrait-quote.hidden { opacity: 0; pointer-events: none; }
+.quote-text {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.75;
+  letter-spacing: .02em;
+}
+.quote-author {
+  font-size: 11px;
+  color: var(--gold-dim);
+  margin-top: 5px;
+  font-style: italic;
+  font-family: 'IM Fell English', serif;
+}
+.quote-author::before { content: '— '; }
+
+/* 状态角标 */
+.portrait-status {
+  position: absolute;
+  top: 10px; left: 10px;
+  z-index: 5;
+  background: rgba(27,20,16,.85);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: .05em;
+  backdrop-filter: blur(4px);
+  transition: opacity .3s;
+}
+.portrait-status.hidden { opacity: 0; }
+
+/* ══════════════════════════════════════
+   STATUS BAR（状态条）
+══════════════════════════════════════ */
+.status-bar {
+  flex-shrink: 0;
+  margin: 6px 14px 0;
+  height: 30px;
+  background: linear-gradient(90deg, var(--bg3), var(--bg2), var(--bg3));
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.status-bar-text {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: .05em;
+}
+.status-dots { display: flex; gap: 4px; }
+.status-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--gold-dim);
+}
+.status-dot:nth-child(1) { animation: sd .9s ease-in-out infinite; }
+.status-dot:nth-child(2) { animation: sd .9s ease-in-out .3s infinite; }
+.status-dot:nth-child(3) { animation: sd .9s ease-in-out .6s infinite; }
+@keyframes sd { 0%,80%,100%{opacity:.3;transform:scale(1)} 40%{opacity:1;transform:scale(1.4)} }
+.status-dots.hidden { display: none; }
+
+/* ══════════════════════════════════════
+   MAIN CONTENT AREA
+══════════════════════════════════════ */
+.main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+.scroll::-webkit-scrollbar { width: 2px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* ══════════════════════════════════════
+   IDLE STATE（待机 — 推荐问题）
+══════════════════════════════════════ */
+.idle-panel { display: flex; flex-direction: column; gap: 10px; }
+
+.guide-label {
+  font-size: 10px;
+  color: var(--text-mu);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 2px 0;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.guide-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 9px 11px;
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+  line-height: 1.5;
+  font-family: 'Noto Serif SC', serif;
+  transition: all .22s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.guide-card-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.guide-card:active {
+  border-color: var(--gold-dim);
+  color: var(--gold);
+  background: var(--bg3);
+  box-shadow: 0 0 14px var(--gold-glow);
+}
+
+/* 入口按钮 */
+.entry-row {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+}
+.entry-btn {
+  flex: 1;
+  max-width: 140px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--text-mu);
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: .04em;
+  transition: all .22s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.entry-btn:active {
+  border-color: var(--gold-dim);
+  color: var(--gold);
+  background: var(--gold-glow);
+}
+
+/* ══════════════════════════════════════
+   DIALOGUE LOG（对话记录）
+══════════════════════════════════════ */
+.dialogue { display: flex; flex-direction: column; gap: 14px; }
+
+/* 时间分割线 */
+.time-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  color: var(--text-mu);
+  letter-spacing: .05em;
+}
+.time-divider::before, .time-divider::after {
+  content: '';
+  flex: 1;
+  height: .5px;
+  background: var(--border);
+}
+
+/* 用户消息 */
+.q-row { display: flex; justify-content: flex-end; }
+.q-bbl {
+  max-width: 78%;
+  background: rgba(139,46,46,.14);
+  border: 1px solid rgba(139,46,46,.28);
+  border-radius: 12px 12px 2px 12px;
+  padding: 9px 13px;
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.7;
+}
+
+/* 语音消息 */
+.voice-row { display: flex; justify-content: flex-end; }
+.voice-bbl {
+  background: rgba(139,46,46,.1);
+  border: 1px solid rgba(139,46,46,.22);
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.voice-wave { color: var(--gold-dim); font-size: 14px; }
+
+/* 马克思回答（羊皮纸卡片）*/
+.a-row { display: flex; flex-direction: column; gap: 5px; }
+.a-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 2px;
+}
+.a-avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-dim);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.a-name {
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: .06em;
+  font-family: 'IM Fell English', serif;
+}
+.a-card {
+  background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+  border: 1px solid var(--border);
+  border-radius: 2px 12px 12px 12px;
+  padding: 13px 15px 10px;
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.85;
+  font-family: 'Noto Serif SC', serif;
+  position: relative;
+}
+.a-card-quote {
+  position: absolute;
+  top: 6px; left: 10px;
+  font-size: 26px;
+  color: rgba(200,163,106,.2);
+  font-family: Georgia, serif;
+  line-height: 1;
+  pointer-events: none;
+}
+.a-card-body { padding-left: 12px; }
+
+/* 打字机效果光标 */
+.a-card-body.typing::after {
+  content: '▌';
+  color: var(--gold);
+  animation: cur .6s step-end infinite;
+  font-size: 12px;
+}
+@keyframes cur { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.a-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+  padding-top: 7px;
+  border-top: .5px solid var(--border);
+}
+.a-cite {
+  font-size: 10px;
+  color: var(--text-mu);
+  font-style: italic;
+  font-family: 'IM Fell English', serif;
+}
+.a-play {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 10px;
+  color: var(--text-mu);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.a-play:active { border-color: var(--gold-dim); color: var(--gold); }
+.a-play.playing { color: var(--gold); border-color: var(--gold-dim); }
+
+/* 思考中 */
+.thinking-row { display: flex; align-items: center; gap: 8px; }
+.thinking-avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-dim);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.thinking-bbl {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px 12px 12px 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.t-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--gold-dim);
+  animation: td .9s ease-in-out infinite;
+}
+.t-dot:nth-child(2) { animation-delay: .22s; }
+.t-dot:nth-child(3) { animation-delay: .44s; }
+@keyframes td { 0%,80%,100%{transform:scale(1);opacity:.3} 40%{transform:scale(1.5);opacity:1} }
+
+/* ══════════════════════════════════════
+   INPUT AREA
+══════════════════════════════════════ */
+.ia {
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 8px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* 模式标签 */
+.mode-tabs {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+.mtab {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 16px;
+  font-size: 11px;
+  color: var(--text-mu);
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: .04em;
+  transition: all .2s;
+}
+.mtab.on {
+  border-color: var(--gold-dim);
+  color: var(--gold);
+  background: var(--gold-glow);
+}
+
+/* 文字输入行 */
+.text-row {
+  display: flex;
+  gap: 9px;
+  align-items: flex-end;
+}
+.txt-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 9px 15px;
+  font-size: 13.5px;
+  color: var(--text);
+  resize: none;
+  font-family: 'Noto Serif SC', serif;
+  line-height: 1.5;
+  max-height: 90px;
+  outline: none;
+  transition: border-color .2s;
+}
+.txt-input::placeholder { color: var(--text-mu); }
+.txt-input:focus { border-color: var(--gold-dim); }
+
+/* 发送按钮 */
+.send-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--red);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background .2s, transform .1s;
+  box-shadow: 0 2px 10px rgba(139,46,46,.4);
+}
+.send-btn:active { background: var(--red-l); transform: scale(.9); }
+.send-btn svg { fill: white; }
+
+/* 语音按钮 */
+.mic-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--bg4);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.mic-btn svg { stroke: var(--text-mu); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.mic-btn:active { border-color: var(--red); background: rgba(139,46,46,.15); }
+
+/* 按住说话 */
+.voice-row-input { display: flex; justify-content: center; }
+.hold-btn {
+  width: 100%;
+  max-width: 260px;
+  height: 46px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 23px;
+  font-size: 13px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: 'Noto Serif SC', serif;
+  letter-spacing: .06em;
+  transition: all .15s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.hold-btn.pr {
+  background: rgba(139,46,46,.18);
+  border-color: var(--red);
+  color: var(--red-l);
+  box-shadow: 0 0 14px rgba(139,46,46,.25);
+}
+
+/* 底部名言 */
+.footer-quote {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-mu);
+  font-style: italic;
+  font-family: 'IM Fell English', serif;
+  letter-spacing: .03em;
+  padding: 2px 0;
+  min-height: 15px;
+  transition: opacity .5s;
+}
+
+/* HIDDEN */
+.hidden { display: none !important; }
+
+/* ── 历史侧滑面板 ── */
+.hist-btn {
+  background: none;
+  border: none;
+  color: var(--text-mu);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  flex-shrink: 0;
+  transition: color .2s;
+}
+.hist-btn:active { color: var(--gold); }
+.hist-mask {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 200;
+  backdrop-filter: blur(2px);
+}
+.hist-panel {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 80%;
+  max-width: 320px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform .3s ease;
+}
+.hist-panel.open { transform: translateX(0); }
+.hist-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.hist-title {
+  font-size: 14px;
+  color: var(--gold);
+  font-family: 'IM Fell English', serif;
+  letter-spacing: .06em;
+}
+.hist-new {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+}
+.hist-new:active { border-color: var(--gold-dim); color: var(--gold); }
+.hist-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.hist-list::-webkit-scrollbar { width: 2px; }
+.hist-list::-webkit-scrollbar-thumb { background: var(--border); }
+.hist-loading {
+  text-align: center;
+  padding: 24px;
+  font-size: 12px;
+  color: var(--text-mu);
+}
+.hist-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: .5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: background .2s;
+}
+.hist-item:active { background: var(--bg3); }
+.hist-item-left { flex: 1; min-width: 0; }
+.hist-item-title {
+  font-size: 13px;
+  color: var(--text);
+  font-family: 'Noto Serif SC', serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hist-item-time {
+  font-size: 11px;
+  color: var(--text-mu);
+  margin-top: 3px;
+}
+.hist-item-del {
+  background: none;
+  border: none;
+  color: var(--text-mu);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  flex-shrink: 0;
+  transition: color .2s;
+}
+.hist-item-del:active { color: var(--red-l); }
+
+/* ══════════════════════════════════════
+   LIVE VOICE OVERLAY（实时通话全屏）
+══════════════════════════════════════ */
+.live-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.lv-hd {
+  flex-shrink: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+.lv-back {
+  background: none; border: none;
+  color: var(--text-dim); cursor: pointer;
+  font-size: 12px; font-family: inherit;
+  width: 72px;
+}
+.lv-title {
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: .07em;
+  font-family: 'IM Fell English', serif;
+}
+
+/* 视频区 60vh */
+.lv-video-wrap {
+  flex-shrink: 0;
+  height: 60vh;
+  position: relative;
+  overflow: hidden;
+}
+.lv-vid {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: opacity .5s ease;
+  opacity: 0;
+  z-index: 1;
+}
+.lv-vid.active { opacity: 1; }
+
+/* 静态图（无视频时显示） */
+.lv-static-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.lv-gradient {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 40%;
+  background: linear-gradient(to top, rgba(27,20,16,.95), transparent);
+  z-index: 2;
+}
+.lv-badge {
+  position: absolute;
+  bottom: 12px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  background: rgba(27,20,16,.88);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 16px;
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: .05em;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+
+/* 字幕区 */
+.lv-subs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+.lv-user-line {
+  font-size: 12px;
+  color: var(--text-mu);
+  text-align: right;
+  min-height: 18px;
+  font-style: italic;
+}
+.lv-marx-line {
+  font-size: 13.5px;
+  color: var(--text);
+  font-family: 'Noto Serif SC', serif;
+  line-height: 1.75;
+  min-height: 20px;
+}
+
+/* 控制区 */
+.lv-ctrl {
+  flex-shrink: 0;
+  height: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+}
+.lv-mic {
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  background: var(--red);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+  box-shadow: 0 4px 16px rgba(139,46,46,.4);
+}
+.lv-mic.on {
+  background: var(--red-l);
+  animation: micP 1.5s ease-in-out infinite;
+}
+@keyframes micP {
+  0%,100%{box-shadow:0 0 0 4px rgba(139,46,46,.25),0 4px 16px rgba(139,46,46,.4)}
+  50%{box-shadow:0 0 0 12px rgba(139,46,46,.08),0 4px 16px rgba(139,46,46,.4)}
+}
+.lv-mic-hint {
+  font-size: 10px;
+  color: var(--text-mu);
+  letter-spacing: .05em;
+}
+
+/* ══════════════════════════════════════
+   UTILS
+══════════════════════════════════════ */
+.sep {
+  height: .5px;
+  background: var(--border);
+  margin: 2px 0;
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="av"><img src="marx-avatar.png?v=2"></div>
-  <div class="hinfo">
-    <div class="hname">卡尔·马克思</div>
-    <div class="hsub" id="hsub">哲学家 · 1818—1883</div>
+<!-- ══ HEADER ══ -->
+<header class="hd">
+  <button class="hist-btn" onclick="openHistory()">☰</button>
+  <div class="hd-left">
+    <div class="hd-name">Karl Marx</div>
+    <div class="hd-sub">《资本论》作者 · 历史唯物主义创立者</div>
   </div>
-  <div class="dot-st" id="dot" title="服务状态"></div>
-</div>
+  <div class="hd-right">
+    <div class="hd-loc">London · 1867</div>
+    <div class="hd-mode" id="hdMode">
+      <div class="hd-mode-dot"></div>
+      <span id="hdModeText">文字交流</span>
+    </div>
+  </div>
+</header>
 
-<div id="audioProgressBar"><div id="audioProgressFill"></div></div>
+<!-- ══ PORTRAIT ══ -->
+<div class="portrait-section">
+  <!-- 四角装饰 -->
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
 
-<div class="mode-badge" id="modeBadge">
-  <span class="tag" id="modeTag">思辨模式</span>
-  <span>开启中</span>
-</div>
+  <!-- 静态照片 -->
+  <img class="marx-img" id="marxImg"
+    src="mks.png"
+    alt="卡尔·马克思"
+    onerror="this.style.background='#2c2018';this.style.display='flex'">
 
-<div class="msgs" id="msgs">
-  <div class="ts-div">书房·伦敦·1867年</div>
-  <div class="msg marx" id="openMsg">
-    <div class="mav m"><img src="marx-avatar.png?v=2"></div>
-    <div class="bubble">来访者，你好。<br>我是卡尔·马克思。有何问题想与我讨论？</div>
+  <!-- 双缓冲视频（实时通话时用） -->
+  <video id="marxVideoA" class="marx-video" autoplay muted playsinline></video>
+  <video id="marxVideoB" class="marx-video" autoplay muted playsinline></video>
+
+  <!-- 底部渐变 -->
+  <div class="portrait-gradient"></div>
+
+  <!-- 名言 -->
+  <div class="portrait-quote" id="portraitQuote">
+    <div class="quote-text" id="quoteText">
+      "哲学家们只是用不同方式解释世界，问题在于改变世界。"
+    </div>
+    <div class="quote-author">Karl Marx</div>
+  </div>
+
+  <!-- 状态角标（对话中显示） -->
+  <div class="portrait-status hidden" id="portraitStatus">
+    📖 马克思正在查阅著作
   </div>
 </div>
 
-<div class="pover" id="pover"></div>
+<!-- ══ STATUS BAR ══ -->
+<div class="status-bar">
+  <span class="status-bar-text" id="statusBarText">📚 马克思正在阅读《资本论》</span>
+  <div class="status-dots hidden" id="statusDots">
+    <div class="status-dot"></div>
+    <div class="status-dot"></div>
+    <div class="status-dot"></div>
+  </div>
+</div>
 
-<div class="input-area" id="inputArea">
-  <div class="ppanel" id="ppanel">
-    <div class="ppi"><span class="ppl"><span class="ic">🤔</span>思辨模式</span><button class="tog" id="togD" onclick="tog('debate')"></button></div>
-    <div class="ppi"><span class="ppl"><span class="ic">📖</span>引用模式</span><button class="tog" id="togC" onclick="tog('cite')"></button></div>
-    <div class="ppi" style="flex-direction:column;align-items:stretch;gap:6px">
-      <div style="display:flex;align-items:center;justify-content:space-between"><span class="ppl"><span class="ic">💬</span>快捷话题</span></div>
-      <div class="qtags">
-        <button class="qtag" onclick="qt('什么是异化劳动？')">异化劳动</button>
-        <button class="qtag" onclick="qt('资本主义为何会爆发危机？')">资本主义危机</button>
-        <button class="qtag" onclick="qt('什么是商品拜物教？')">商品拜物教</button>
-        <button class="qtag" onclick="qt('如何理解历史唯物主义？')">历史唯物主义</button>
-        <button class="qtag" onclick="qt('什么是剩余价值？')">剩余价值</button>
-        <button class="qtag" onclick="qt('阶级斗争的核心是什么？')">阶级斗争</button>
+<!-- ══ MAIN ══ -->
+<div class="main">
+  <div class="scroll" id="scroll">
+
+    <!-- 待机面板 -->
+    <div class="idle-panel" id="idlePanel">
+      <div class="entry-row">
+        <button class="entry-btn" onclick="setMode('text')">✦ 文字交流</button>
+        <button class="entry-btn" onclick="setMode('voice')">🎤 语音交流</button>
+        <button class="entry-btn" onclick="enterLive()">📞 实时通话</button>
+      </div>
+      <div class="sep"></div>
+      <div class="guide-label">思想引导</div>
+      <div class="guide-grid">
+        <div class="guide-card" onclick="ask('什么是剩余价值？')">
+          <span class="guide-card-icon">💰</span>什么是剩余价值？
+        </div>
+        <div class="guide-card" onclick="ask('资本论的核心思想是什么？')">
+          <span class="guide-card-icon">📖</span>资本论核心思想
+        </div>
+        <div class="guide-card" onclick="ask('青年应如何成长？')">
+          <span class="guide-card-icon">🌱</span>青年如何成长？
+        </div>
+        <div class="guide-card" onclick="ask('如何理解共产主义？')">
+          <span class="guide-card-icon">✊</span>如何理解共产主义？
+        </div>
+        <div class="guide-card" onclick="ask('什么是异化劳动？')">
+          <span class="guide-card-icon">⚙️</span>什么是异化劳动？
+        </div>
+        <div class="guide-card" onclick="ask('历史唯物主义是什么？')">
+          <span class="guide-card-icon">📜</span>历史唯物主义
+        </div>
       </div>
     </div>
-    <div class="ppi"><span class="ppl"><span class="ic">🗑️</span>清空对话</span><button class="ppb" onclick="clearChat()">清空</button></div>
-  </div>
 
-  <div class="irow">
-    <button class="msw" id="msw" onclick="swInput()" title="切换语音输入">
-      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" fill="currentColor"/><path d="M19 11a7 7 0 0 1-14 0H3a9 9 0 0 0 8 8.94V22h2v-2.06A9 9 0 0 0 21 11h-2z" fill="currentColor"/></svg>
-    </button>
-    <textarea class="ibox" id="ibox" placeholder="向马克思提问..." rows="1" oninput="ar(this)" onkeydown="ok(event)"></textarea>
-    <button class="hold" id="hold">按住 说话</button>
-    <button class="pbtn" id="pbtn">+</button>
-    <button class="callbtn" id="callBtn" onclick="enterLiveVoice()" title="实时语音对话">
-      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.02l-2.2 2.2z" fill="currentColor"/></svg>
-    </button>
-    <button class="sbtn" id="sbtn" onclick="sendT()">
-      <svg viewBox="0 0 24 24"><path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/></svg>
-    </button>
+    <!-- 对话记录 -->
+    <div class="dialogue" id="dialogue"></div>
+
   </div>
 </div>
 
-<div id="liveOverlay" class="live-overlay hidden">
-  <div class="lv-header">
-    <button class="lv-back" onclick="exitLiveVoice()">← 退出</button>
-    <span class="lv-title">语音对话</span>
-    <span style="width:60px"></span>
+<!-- ══ INPUT AREA ══ -->
+<div class="ia">
+  <div class="mode-tabs">
+    <button class="mtab on" id="tabText" onclick="setMode('text')">文字</button>
+    <button class="mtab" id="tabVoice" onclick="setMode('voice')">语音</button>
+    <button class="mtab" id="tabLive" onclick="enterLive()">通话</button>
+    <button class="mtab" id="btnSibian" onclick="toggleMode('sibian')">思辨</button>
+    <button class="mtab" id="btnYinyong" onclick="toggleMode('yinyong')">引用</button>
   </div>
-  <div class="lv-body" id="lvBody">
-    <div class="lv-avatar">
-      <img src="marx-avatar.png?v=2">
-    </div>
-    <canvas class="lv-wave" id="lvWave"></canvas>
-    <div class="lv-status" id="lvStatus">点击麦克风开始</div>
-    <div class="lv-trans" id="lvTrans"></div>
-    <div class="lv-chat" id="lvChat"></div>
-  </div>
-  <div class="lv-footer">
-    <button class="lv-mic" id="lvMic" onclick="toggleLiveMic(this)">
-      <svg viewBox="0 0 24 24" width="28" height="28">
-        <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" fill="white"/>
-        <path d="M19 11a7 7 0 0 1-14 0H3a9 9 0 0 0 8 8.94V22h2v-2.06A9 9 0 0 0 21 11h-2z" fill="white"/>
+
+  <!-- 文字输入 -->
+  <div class="text-row" id="textRow">
+    <button class="mic-btn" id="ttsToggleBtn" onclick="toggleTTS()" title="语音朗读">
+      <svg width="18" height="18" viewBox="0 0 24 24">
+        <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" id="ttsIcon"/>
       </svg>
     </button>
+    <textarea class="txt-input" id="ibox"
+      placeholder="向马克思提问..."
+      rows="1"
+      oninput="resize(this)"
+      onkeydown="onKey(event)"></textarea>
+    <button class="send-btn" onclick="send()">
+      <svg width="18" height="18" viewBox="0 0 24 24">
+        <path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- 语音输入 -->
+  <div class="voice-row-input hidden" id="voiceRow">
+    <button class="hold-btn" id="holdBtn"
+      onmousedown="hS(event)" onmouseup="hE(event)"
+      ontouchstart="hS(event)" ontouchend="hE(event)"
+      onmouseleave="hC(event)" ontouchcancel="hC(event)">
+      按住 说话
+    </button>
+  </div>
+
+  <div class="footer-quote" id="footerQuote">
+    "人的本质是一切社会关系的总和。"
+  </div>
+</div>
+
+<!-- ══ 历史侧滑面板 ══ -->
+<div class="hist-mask hidden" id="histMask" onclick="closeHistory()"></div>
+<div class="hist-panel hidden" id="histPanel">
+ <div class="hist-hd">
+ <span class="hist-title">历史对话</span>
+ <button class="hist-new" onclick="newConversation()">+ 新对话</button>
+ </div>
+ <div class="hist-list" id="histList">
+ <div class="hist-loading">加载中...</div>
+ </div>
+</div>
+
+<!-- ══ LIVE OVERLAY ══ -->
+<div class="live-overlay hidden" id="liveOverlay">
+  <div class="lv-hd">
+    <button class="lv-back" onclick="exitLive()">← 退出</button>
+    <span class="lv-title">实时通话</span>
+    <span style="width:72px"></span>
+  </div>
+
+  <div class="lv-video-wrap">
+    <img class="lv-static-img" src="mks.png" alt="">
+    <video id="liveVidA" class="lv-vid" autoplay muted playsinline></video>
+    <video id="liveVidB" class="lv-vid" autoplay muted playsinline></video>
+    <div class="lv-gradient"></div>
+    <div class="lv-badge" id="lvBadge">📚 马克思正在阅读《资本论》</div>
+  </div>
+
+  <div class="lv-subs">
+    <div class="lv-user-line" id="lvUser"></div>
+    <div class="lv-marx-line" id="lvMarx"></div>
+  </div>
+
+  <div class="lv-ctrl">
+    <button class="lv-mic" id="lvMicBtn" onclick="toggleLiveMic(this)">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
+        stroke="white" stroke-width="2" stroke-linecap="round">
+        <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
+        <path d="M19 11a7 7 0 0 1-14 0M12 19v4M8 23h8"/>
+      </svg>
+    </button>
+    <div class="lv-mic-hint" id="lvHint">点击麦克风开始</div>
   </div>
 </div>
 
 <script>
-// ============================================================
-// shorthand & config
-// ============================================================
-const ge = id => document.getElementById(id);
-const API = window.location.origin;
-let hist = [], sending = false, modeI = 'text', thinkId = null;
-let debate = false, cite = false, lastTs = null, tsCnt = 0;
-let mr = null, aChunks = [], recStart = 0, isRec = false, recTimer = null;
-let aQueue = [], isPlay = false, curAud = null;
-let liveWS = null, liveAudioCtx = null, liveMic = null, liveScriptNode = null;
-let liveActive = false;
-let liveRecorder = null;
-let liveRecorderChunks = [];
-let livePollTimer = null;
-let liveVADCtx = null;
-let liveStream = null;
+// ══════════════════════════════════════
+// CONFIG — 接入本地后端时只改这里
+// ══════════════════════════════════════
+const API_BASE = window.location.origin  // 本地后端地址
 
-// 流式音频队列
-let liveAudioQueue = [];
-let liveAudioPlaying = false;
-let liveReplyEl = null;
+// ══════════════════════════════════════
+// 状态
+// ══════════════════════════════════════
+let history = []
+let sending = false
+let ttsOn = false
+let currentMode = 'text'
+let isRec = false
+let shouldSend = false
+let mr = null
+let aChunks = []
+let recStart = 0
+let recTimer = null
+let liveActive = false
+let liveWS = null
+let liveAudioQueue = []
+let liveAudioPlaying = false
+let lastReplyText = ''
+let activeVid = 'A'
+let currentAudio = null
 
+// ══════════════════════════════════════
+// 名言系统
+// ══════════════════════════════════════
+const QUOTES = [
+  '"哲学家们只是用不同方式解释世界，问题在于改变世界。"',
+  '"人的本质是一切社会关系的总和。"',
+  '"理论一经掌握群众，也会变成物质力量。"',
+  '"历史不过是追求着自己目的的人的活动。"',
+  '"资本来到世间，每个毛孔都滴着血和肮脏的东西。"',
+  '"工人没有祖国，不能剥夺他们没有的东西。"',
+]
+const FOOTER_QUOTES = [
+  '"人的本质是一切社会关系的总和。"',
+  '"批判的武器不能代替武器的批判。"',
+  '"存在决定意识。"',
+]
+let qi = 0, fqi = 0
 
-fetch(API + '/health').then(r=>r.json()).then(()=>{ge('dot').style.background='#4a9'}).catch(()=>{ge('dot').style.background='#c04'});
+function rotatePortraitQuote() {
+  const el = document.getElementById('quoteText')
+  if (!el) return
+  el.style.opacity = '0'
+  setTimeout(() => {
+    qi = (qi + 1) % QUOTES.length
+    el.textContent = QUOTES[qi]
+    el.style.opacity = '1'
+  }, 500)
+}
+function rotateFooterQuote() {
+  const el = document.getElementById('footerQuote')
+  if (!el) return
+  el.style.opacity = '0'
+  setTimeout(() => {
+    fqi = (fqi + 1) % FOOTER_QUOTES.length
+    el.textContent = FOOTER_QUOTES[fqi]
+    el.style.opacity = '1'
+  }, 500)
+}
+document.getElementById('quoteText').style.transition = 'opacity .5s ease'
+setInterval(rotatePortraitQuote, 6000)
+setInterval(rotateFooterQuote, 8000)
 
-function swInput() {
-  if (modeI === 'text') {
-    modeI = 'voice';
-    ge('ibox').style.display = 'none';
-    ge('hold').classList.add('show');
-    ge('sbtn').classList.add('hide');
-    ge('msw').classList.add('act');
-    ge('msw').title = '\u5207\u6362\u6587\u5b57\u8f93\u5165';
+// ══════════════════════════════════════
+// 模式切换
+// ══════════════════════════════════════
+function setMode(mode) {
+  currentMode = mode
+  const textRow = document.getElementById('textRow')
+  const voiceRow = document.getElementById('voiceRow')
+  const tabText = document.getElementById('tabText')
+  const tabVoice = document.getElementById('tabVoice')
+  const hdModeText = document.getElementById('hdModeText')
+
+  if (mode === 'text') {
+    textRow.classList.remove('hidden')
+    voiceRow.classList.add('hidden')
+    tabText.classList.add('on')
+    tabVoice.classList.remove('on')
+    if (hdModeText) hdModeText.textContent = '文字交流'
   } else {
-    modeI = 'text';
-    ge('ibox').style.display = '';
-    ge('hold').classList.remove('show');
-    ge('sbtn').classList.remove('hide');
-    ge('msw').classList.remove('act');
-    ge('msw').title = '\u5207\u6362\u8bed\u97f3\u8f93\u5165';
+    textRow.classList.add('hidden')
+    voiceRow.classList.remove('hidden')
+    tabText.classList.remove('on')
+    tabVoice.classList.add('on')
+    if (hdModeText) hdModeText.textContent = '语音交流'
   }
 }
 
-// === \u6309\u4f4f\u8bf4\u8bdd ===
-const hb = ge('hold');
-hb.addEventListener('touchstart', hS);
-hb.addEventListener('touchend', hE);
-hb.addEventListener('touchcancel', hC);
-hb.addEventListener('mousedown', hS);
-hb.addEventListener('mouseup', hE);
-hb.addEventListener('mouseleave', hC);
-
-function hS(e) { console.log('[hold] mousedown'); e.preventDefault(); if (isRec) { console.log('[hold] already rec, skip'); return; } console.log('[hold] start rec'); hb.classList.add('pr'); hb.textContent = '\u677e\u5f00 \u53d1\u9001'; stRec(); }
-function hE(e) { console.log('[hold] mouseup'); e.preventDefault(); if (!isRec) { console.log('[hold] not rec, skip'); return; } console.log('[hold] stop rec'); hb.classList.remove('pr'); hb.textContent = '\u6309\u4f4f \u8bf4\u8bdd'; spRec(true); }
-function hC(e) { e.preventDefault(); if (!isRec) return; hb.classList.remove('pr'); hb.textContent = '\u6309\u4f4f \u8bf4\u8bdd'; spRec(false); }
-
-async function stRec() {
-  try {
-    const st = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const mt = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
-    mr = new MediaRecorder(st, { mimeType: mt });
-    aChunks = [];
-    recStart = Date.now();
-    mr.ondataavailable = e => { if (e.data.size > 0) { console.log('[hold] dataavailable, size:', e.data.size); aChunks.push(e.data); } else { console.log('[hold] dataavailable empty chunk'); } };
-    mr._stream = st;
-mr.onstop = () => { st.getTracks().forEach(t => t.stop()); };
-    mr.start();
-    isRec = true;
-    recTimer = setInterval(() => {
-      const sec = Math.floor((Date.now() - recStart) / 1000);
-      hb.textContent = '\u677e\u5f00 \u53d1\u9001 ' + sec + '\u2033';
-    }, 200);
-  } catch (e) {
-    console.error('[hold] \u5f55\u97f3\u5931\u8d25', e);
-    hb.classList.remove('pr');
-    hb.textContent = '\u6309\u4f4f \u8bf4\u8bdd';
+// ══════════════════════════════════════
+// 状态栏更新
+// ══════════════════════════════════════
+const STATUS_MAP = {
+  idle:      '📚 马克思正在阅读《资本论》',
+  listening: '🎤 马克思正在聆听你的问题',
+  thinking:  '📖 马克思正在查阅著作',
+  speaking:  '💬 马克思正在回答',
+  citing:    '📜 引经据典',
+  emphasis:  '✊ 马克思强调观点',
+}
+function setStatus(state) {
+  const bar = document.getElementById('statusBarText')
+  const dots = document.getElementById('statusDots')
+  const ps = document.getElementById('portraitStatus')
+  if (bar) bar.textContent = STATUS_MAP[state] || STATUS_MAP.idle
+  if (dots) dots.classList.toggle('hidden', state === 'idle')
+  if (ps) {
+    ps.textContent = STATUS_MAP[state] || ''
+    ps.classList.toggle('hidden', state === 'idle')
   }
 }
 
-function spRec(send) {
-  console.log('[hold] spRec, send:', send, 'chunks:', aChunks.length, 'mr:', mr ? mr.state : 'null');
-  if (!mr || mr.state === 'inactive') { console.log('[hold] spRec skip: inactive'); return; }
-  isRec = false;
-  if (recTimer) { clearInterval(recTimer); recTimer = null; }
-  var shouldSend = send;
-  // 在 onstop 回调中发送，因为 dataavailable 在 stop() 之后才触发
-  mr.onstop = function() {
-    console.log('[hold] onstop fired, aChunks:', aChunks.length);
-    if (shouldSend && aChunks.length > 0) {
-      console.log('[hold] onstop -> sendVoiceMsg');
-      var d = Math.floor((Date.now() - recStart) / 1000);
-      sendVoiceMsg(aChunks, d);
+// ══════════════════════════════════════
+// 视频状态机（实时通话用）
+// ══════════════════════════════════════
+const SPEAKING_GROUP = ['speakA','speakB','theory','citing','emphA','emphB','encourage','summary']
+const VIDEO_MAP = {
+  idle:      'videos/视频01：待机状态.mp4',
+  thinkA:    'videos/视频02：思考状态A.mp4',
+  thinkB:    'videos/视频03：思考状态B.mp4',
+  speakA:    'videos/视频04：普通讲解A.mp4',
+  speakB:    'videos/视频05：普通讲解B.mp4',
+  theory:    'videos/视频06：理论讲授.mp4',
+  citing:    'videos/视频07：翻书引用.mp4',
+  emphA:     'videos/视频08：强调观点A.mp4',
+  emphB:     'videos/视频09：强调观点B.mp4',
+  encourage: 'videos/视频10：鼓励学生.mp4',
+  summary:   'videos/视频11：总结归纳.mp4',
+  closing:   'videos/视频12：结束语.mp4',
+}
+const BADGE_TEXT = {
+  idle:      '📚 马克思正在阅读《资本论》',
+  thinkA:    '📖 马克思正在查阅著作',
+  thinkB:    '📖 马克思正在思考',
+  speakA:    '💬 马克思正在回答',
+  speakB:    '💬 马克思正在回答',
+  theory:    '🎓 理论讲授',
+  citing:    '📜 引经据典',
+  emphA:     '❓ 马克思正在反问',
+  emphB:     '✊ 马克思强调观点',
+  encourage: '🌱 马克思正在鼓励',
+  summary:   '📋 总结归纳',
+  closing:   '📕 本次交流即将结束',
+}
+var lastSwitchTime = 0
+var currentVidState = ''
+
+function setVideoState(state) {
+  // 稳定性规则1：同状态不重复切换
+  if (currentVidState === state) return
+  // 稳定性规则2：非idle状态距上次切换不足3000毫秒直接return
+  if (state !== 'idle' && Date.now() - lastSwitchTime < 3000) return
+  var src = VIDEO_MAP[state]
+  if (!src) return
+  var curEl = document.getElementById('liveVid' + activeVid)
+  var nxtId = activeVid === 'A' ? 'B' : 'A'
+  var nxtEl = document.getElementById('liveVid' + nxtId)
+  if (!curEl || !nxtEl) return
+  nxtEl.src = src
+  nxtEl.loop = (state === 'idle' || state === 'thinkA' || state === 'thinkB')
+  nxtEl.load()
+  nxtEl.oncanplay = function() {
+    nxtEl.play().catch(function(){})
+    nxtEl.style.opacity = '1'
+    curEl.style.opacity = '0'
+    activeVid = nxtId
+    setTimeout(function() { curEl.pause(); curEl.src = '' }, 600)
+  }
+  // 非loop视频播完才允许换下一个
+  if (SPEAKING_GROUP.indexOf(state) >= 0) {
+    nxtEl.onended = function() {
+      if (liveAudioPlaying) {
+        // 同组随机轮播
+        var alt = state
+        while (alt === state) {
+          alt = SPEAKING_GROUP[Math.floor(Math.random() * SPEAKING_GROUP.length)]
+        }
+        setVideoState(alt)
+      }
     }
-    aChunks = [];
-    // 清理流
-    if (mr._stream) mr._stream.getTracks().forEach(function(t) { t.stop(); });
-  };
-  mr.stop();
+  } else {
+    nxtEl.onended = null
+  }
+  currentVidState = state
+  lastSwitchTime = now
+  var badge = document.getElementById('lvBadge')
+  if (badge) badge.textContent = BADGE_TEXT[state] || ''
 }
 
-async function sendVoiceMsg(chunks, dur) {
-  console.log('[voiceMsg] ===== \u5f00\u59cb\u5904\u7406\u8bed\u97f3, dur:', dur);
-  if (!chunks || chunks.length === 0) { console.log('[voiceMsg] \u65e0\u97f3\u9891\u6570\u636e'); return; }
-  const bl = new Blob(chunks, { type: mr ? mr.mimeType : 'audio/webm' });
-  const ds = Math.min(dur, 60);
-  aVB('user', ds);
-  scrollB();
+function pickVideoByReply(text) {
+  if (!text) return 'speakA'
+  if (text.includes('《') || text.includes('著作') || text.includes('手稿')) return 'citing'
+  if (text.includes('总结') || text.includes('综上') || text.includes('因此')) return 'summary'
+  if (text.includes('理论') || text.includes('辩证') || text.includes('唯物')) return 'theory'
+  if (text.includes('！') && text.length < 80) return 'emphA'
+  if (text.includes('必须') || text.includes('绝不') || text.includes('不得不')) return 'emphB'
+  return Math.random() > 0.5 ? 'speakA' : 'speakB'
+}
 
-  // \u65b9\u5f0f1: /chat_voice
-  console.log('[voiceMsg] \u5c1d\u8bd5 /chat_voice ...');
+// ══════════════════════════════════════
+// TTS 开关
+// ══════════════════════════════════════
+function toggleTTS() {
+  ttsOn = !ttsOn
+  const btn = document.getElementById('ttsToggleBtn')
+  if (btn) btn.style.borderColor = ttsOn ? 'var(--gold-dim)' : ''
+}
+
+// ══════════════════════════════════════
+// 文字发送
+// ══════════════════════════════════════
+function resize(el) {
+  el.style.height = 'auto'
+  el.style.height = Math.min(el.scrollHeight, 90) + 'px'
+}
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
+}
+function ask(q) {
+  document.getElementById('ibox').value = q
+  setMode('text')
+  send()
+}
+
+async function send() {
+  if (sending) return
+  const text = getMessageWithPrefix()
+  if (!text) return
+  sending = true
+  const box = document.getElementById('ibox')
+  box.value = ''; box.style.height = 'auto'
+
+  hideIdle()
+  addQ(text)
+  history.push({ role: 'user', content: text })
+
+  setStatus('thinking')
+  document.getElementById('portraitQuote').classList.add('hidden')
+  const tid = addThinking()
+  scrollBottom()
+
   try {
-    const reader = new FileReader();
-    const b64 = await new Promise((resolve, reject) => {
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(bl);
-    });
-    console.log('[voiceMsg] base64 \u957f\u5ea6:', b64.length);
-
-    
-    // webm -> wav for backend whisper
-    console.log('[voiceMsg] sending raw webm...');
-    var reader2 = new FileReader();
-    var msgB64 = await new Promise(function(res, rej) {
-      reader2.onload = function() { res(reader2.result.split(',')[1]); };
-      reader2.onerror = rej;
-      reader2.readAsDataURL(bl);
-    });
-    console.log('[voiceMsg] sending, b64 len:', b64.length);
-const r = await fetch(API + '/chat_voice', {
+    const res = await fetch(API_BASE + '/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ audio_b64: b64, history: hist.slice(-10), tts: true })
-    });
-    console.log('[voiceMsg] /chat_voice \u54cd\u5e94:', r.status);
-    const d = await r.json();
-    if (d.error) { throw new Error(d.error); }
-    console.log('[voiceMsg] \u56de\u590d:', d.reply ? d.reply.substring(0, 40) : 'empty');
-    addTS();
-    const el = aM('marx', d.reply);
-    hist.push({ role: 'user', content: '\uD83C\uDFA4 \u8bed\u97f3\u6d88\u606f' });
-    hist.push({ role: 'assistant', content: d.reply });
-    if (hist.length > 20) hist = hist.slice(-20);
-    if (d.audio) { el.dataset.audio = d.audio; autoPlay(el); }
-    console.log('[voiceMsg] /chat_voice \u5b8c\u6210');
-    scrollB();
-    return;
+      body: JSON.stringify({ message: text, history: history.slice(0, -1), tts: ttsOn })
+    })
+    const data = await res.json()
+    removeEl(tid)
+    if (data.error) { addErr(data.error); history.pop() }
+    else {
+      addA(data.reply, data.audio); autoSaveConversation()
+      history.push({ role: 'assistant', content: data.reply })
+      if (history.length > 20) history = history.slice(-20)
+      setStatus('speaking')
+      if (data.audio && ttsOn) {
+        playB64(data.audio, null, () => setStatus('idle'))
+      } else {
+        setTimeout(() => setStatus('idle'), 3000)
+      }
+    }
   } catch (e) {
-    console.log('[voiceMsg] /chat_voice \u5931\u8d25:', e.message, '\u964d\u7ea7\u5230 Web Speech API');
+    removeEl(tid)
+    // 演示模式：没有后端时显示示例回答
+    const demoReply = getDemoReply(text)
+    addA(demoReply, null)
+    history.push({ role: 'assistant', content: demoReply })
+    setStatus('speaking')
+    setTimeout(() => setStatus('idle'), 4000)
   }
 
-  // \u65b9\u5f0f2: Web Speech API
-  thinkId = aThink();
-  scrollB();
-  let text = '';
+  sending = false
+  scrollBottom()
+}
+
+// 演示回答（后端未连接时）
+function getDemoReply(q) {
+  if (q.includes('剩余价值')) return '劳动者创造的价值超出其工资的部分，便是剩余价值——资本家无偿占有的那份。这不是市场的公平，而是剥削的本质。你以为买卖双方平等，却忘了工人卖出的是自己的生命时间。'
+  if (q.includes('异化')) return '当劳动不再属于劳动者，当产品成为异己的力量压迫创造者，这便是异化。工人越是努力，他所对立的世界便越强大。这是资本主义生产关系的必然逻辑，而非个人的悲剧。'
+  if (q.includes('青年')) return '青年人首先要掌握人类积累的全部知识。没有这个基础，所谓理想不过是空谈。知识不是枷锁，而是改变世界的武器——但前提是你真正拥有它，而非被它拥有。'
+  return '这是一个触及历史根本的问题。一切现象的背后，都是生产力与生产关系的矛盾运动。你所见的表面，不过是深层结构的投影。存在决定意识——从这里出发，我们再往深处谈。'
+}
+
+// ══════════════════════════════════════
+// 语音消息（按住说话）
+// ══════════════════════════════════════
+function hS(e) {
+  e.preventDefault()
+  if (isRec) return
+  shouldSend = false
+  const btn = document.getElementById('holdBtn')
+  btn.classList.add('pr'); btn.textContent = '松开 发送'
+  startRec()
+}
+function hE(e) {
+  e.preventDefault()
+  if (!isRec) return
+  shouldSend = true
+  const btn = document.getElementById('holdBtn')
+  btn.classList.remove('pr'); btn.textContent = '按住 说话'
+  if (recTimer) { clearInterval(recTimer); recTimer = null }
+  isRec = false
+  if (mr && mr.state === 'recording') mr.stop()
+}
+function hC(e) {
+  e.preventDefault()
+  if (!isRec) return
+  shouldSend = false
+  const btn = document.getElementById('holdBtn')
+  btn.classList.remove('pr'); btn.textContent = '按住 说话'
+  isRec = false
+  if (mr && mr.state === 'recording') mr.stop()
+}
+function startRec() {
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(st => {
+    const mt = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus' : 'audio/webm'
+    mr = new MediaRecorder(st, { mimeType: mt })
+    aChunks = []; recStart = Date.now()
+    mr.ondataavailable = e => { if (e.data.size > 0) aChunks.push(e.data) }
+    mr.onstop = () => {
+      st.getTracks().forEach(t => t.stop())
+      if (shouldSend && aChunks.length > 0) {
+        const dur = Math.max(1, Math.floor((Date.now() - recStart) / 1000))
+        sendVoice(aChunks.slice(), dur)
+      }
+      aChunks = []; shouldSend = false
+    }
+    mr.start(100); isRec = true
+  }).catch(e => console.error('[mic]', e))
+}
+async function sendVoice(chunks, dur) {
+  hideIdle()
+  // 语音气泡
+  const vDiv = document.createElement('div')
+  vDiv.className = 'voice-row'
+  vDiv.innerHTML = `<div class="voice-bbl"><span class="voice-wave">🎤</span>${dur}" 语音消息</div>`
+  document.getElementById('dialogue').appendChild(vDiv)
+  scrollBottom()
+
+  setStatus('thinking')
+  const tid = addThinking()
+
+  const blob = new Blob(chunks, { type: 'audio/webm' })
+  const b64 = await new Promise(res => {
+    const r = new FileReader()
+    r.onload = () => res(r.result.split(',')[1])
+    r.readAsDataURL(blob)
+  })
+
   try {
-    text = await speechToText(bl);
-    console.log('[voiceMsg] ASR \u7ed3\u679c:', text);
+    const resp = await fetch(API_BASE + '/chat_voice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ audio_b64: b64, history })
+    })
+    const data = await resp.json()
+    removeEl(tid)
+    if (data.transcript) history.push({ role: 'user', content: data.transcript })
+    addA(data.reply, data.audio); autoSaveConversation()
+    history.push({ role: 'assistant', content: data.reply })
+    setStatus('speaking')
+    if (data.audio) playB64(data.audio, null, () => setStatus('idle'))
+    else setTimeout(() => setStatus('idle'), 3000)
   } catch (e) {
-    console.error('[voiceMsg] ASR \u5931\u8d25:', e);
+    removeEl(tid)
+    addA('语音处理出错，请重试', null)
+    setStatus('idle')
   }
+  scrollBottom()
+}
 
-  if (text) {
-    hist.push({ role: 'user', content: text });
-    try {
-      const r = await fetch(API + '/chat', {
+// ══════════════════════════════════════
+// 实时通话
+// ══════════════════════════════════════
+// ══════════════════════════════════════
+// 实时通话 HTTP SSE 模式
+// ══════════════════════════════════════
+let liveRecState = 'idle'
+let liveMediaRec = null, liveRecChunks = [], liveMicStream = null
+let liveVADTimer = null, liveVADSilent = 0, liveVADSpeaking = false
+let liveAudioCtx = null, liveAnalyser = null
+
+function enterLive() {
+  document.getElementById('liveOverlay').classList.remove('hidden')
+  document.getElementById('hdModeText').textContent = '实时通话'
+  setVideoState('idle')
+  lastSwitchTime = 0
+  liveActive = true
+}
+function exitLive() {
+  stopLiveMicHTTP()
+  document.getElementById('hdModeText').textContent = '文字交流'
+  setVideoState('closing')
+  setTimeout(function() {
+    document.getElementById('liveOverlay').classList.add('hidden')
+    ;['liveVidA','liveVidB'].forEach(function(id) {
+      var v = document.getElementById(id)
+      if (v) { v.pause(); v.src = ''; v.style.opacity = '0' }
+    })
+    currentVidState = ''
+    liveActive = false; liveAudioQueue = []; liveAudioPlaying = false
+  }, 1500)
+}
+function toggleLiveMic(btn) {
+  if (liveRecState !== 'idle' && liveRecState !== 'stopped') {
+    stopLiveMicHTTP()
+    document.getElementById('lvHint').textContent = '点击麦克风开始'
+  } else {
+    startLiveMicHTTP(btn)
+  }
+}
+function startLiveMicHTTP(btn) {
+  if (btn) btn.classList.add('on')
+  document.getElementById('lvHint').textContent = '正在启动麦克风...'
+  liveRecState = 'starting'
+  navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
+    .then(function(stream) {
+      liveMicStream = stream
+      liveRecState = 'recording'
+      document.getElementById('lvHint').textContent = '正在聆听...'
+      setVideoState('idle')
+      liveAudioCtx = new (window.AudioContext || window.webkitAudioContext)()
+      if (liveAudioCtx.state === 'suspended') liveAudioCtx.resume()
+      var src = liveAudioCtx.createMediaStreamSource(stream)
+      liveAnalyser = liveAudioCtx.createAnalyser()
+      liveAnalyser.fftSize = 256
+      src.connect(liveAnalyser)
+      startRecSegment()
+      var dataArray = new Uint8Array(liveAnalyser.frequencyBinCount)
+      liveVADTimer = setInterval(function() {
+        if (liveRecState === 'stopped' || liveRecState === 'idle') { clearInterval(liveVADTimer); return }
+        liveAnalyser.getByteTimeDomainData(dataArray)
+        var maxV = 0
+        for (var k = 0; k < dataArray.length; k++) {
+          var v = Math.abs(dataArray[k] - 128) / 128
+          if (v > maxV) maxV = v
+        }
+        var hasVoice = maxV > 0.03
+        if (hasVoice && !liveVADSpeaking) {
+          liveVADSpeaking = true; liveVADSilent = 0
+          document.getElementById('lvHint').textContent = '正在听您说话...'
+        } else if (!hasVoice && liveVADSpeaking) {
+          liveVADSilent += 200
+          if (liveVADSilent >= 2200) {
+            liveVADSpeaking = false; liveVADSilent = 0
+            finishSegAndSend()
+          }
+        } else if (hasVoice && liveVADSpeaking) { liveVADSilent = 0 }
+      }, 200)
+    })
+    .catch(function(e) {
+      console.error('[liveHTTP] mic failed:', e)
+      document.getElementById('lvHint').textContent = '麦克风失败: ' + e.message
+      liveRecState = 'idle'
+    })
+}
+function startRecSegment() {
+  if (liveRecState === 'stopped' || liveRecState === 'idle' || !liveMicStream) return
+  if (liveRecState === 'waiting') return
+  liveRecChunks = []
+  var mt = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm'
+  var rec = new MediaRecorder(liveMicStream, { mimeType: mt })
+  liveMediaRec = rec
+  rec.ondataavailable = function(e) { if (e.data.size > 0) liveRecChunks.push(e.data) }
+  rec.onstop = function() {
+    if (liveRecChunks.length > 0 && liveRecState !== 'stopped' && liveRecState !== 'idle') {
+      sendSegHTTP(liveRecChunks)
+    } else if (liveRecState !== 'stopped' && liveRecState !== 'idle') {
+      startRecSegment()
+    }
+  }
+  rec.start()
+  setTimeout(function() { if (rec.state === 'recording' && liveRecState !== 'stopped') rec.stop() }, 10000)
+}
+function finishSegAndSend() {
+  if (liveMediaRec && liveMediaRec.state === 'recording') {
+    liveVADSpeaking = false
+    document.getElementById('lvHint').textContent = '处理中...'
+    liveMediaRec.stop()
+  }
+}
+function sendSegHTTP(chunks) {
+  if (liveRecState === 'stopped' || liveRecState === 'idle') return
+  liveRecState = 'waiting'
+  document.getElementById('lvHint').textContent = '马克思正在思考'
+  var blob = new Blob(chunks, { type: 'audio/webm' })
+  var reader = new FileReader()
+  reader.onload = function() {
+    var b64 = reader.result.split(',')[1]
+    // 第一步：只做语音识别，不需要LLM回复（chat_stream会再做）
+    fetch(API_BASE + '/asr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ audio_b64: b64 })
+    })
+    .then(function(r) { return r.json() })
+    .then(function(d) {
+      var transcript = d.text || d.transcript || ''
+      if (!transcript) { resumeListenHTTP(); return }
+      var tlog = document.getElementById('lvTlog')
+      var elMarx = document.getElementById('lvMarx')
+      if (elMarx) elMarx.textContent = ''
+      var elUser = document.getElementById('lvUser')
+      if (elUser) elUser.textContent = transcript
+      if (tlog) {
+        var userLine = document.createElement('div')
+        userLine.className = 'tl-user'
+        userLine.textContent = transcript
+        tlog.appendChild(userLine)
+        tlog.scrollTop = tlog.scrollHeight
+      }
+      var marxLine = null
+      if (tlog) {
+        marxLine = document.createElement('div')
+        marxLine.className = 'tl-marx'
+        marxLine.textContent = ''
+        tlog.appendChild(marxLine)
+      }
+      if (transcript) history.push({ role: 'user', content: transcript })
+      document.getElementById('lvHint').textContent = '马克思正在思考'
+      fetch(API_BASE + '/chat_stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: hist.slice(0, -1), tts: true })
-      });
-      rThink(thinkId); thinkId = null;
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const d = await r.json();
-      if (d.error) throw new Error(d.error);
-      addTS();
-      const el = aM('marx', d.reply);
-      hist.push({ role: 'assistant', content: d.reply });
-      if (hist.length > 20) hist = hist.slice(-20);
-      if (d.audio) { el.dataset.audio = d.audio; autoPlay(el); }
-    } catch (e) {
-      console.error('[voiceMsg] /chat \u5931\u8d25:', e);
-      if (thinkId) { rThink(thinkId); thinkId = null; }
-      aErr('\u8bed\u97f3\u5904\u7406\u5931\u8d25: ' + e.message);
-      hist.pop();
-    }
-  } else {
-    if (thinkId) { rThink(thinkId); thinkId = null; }
-    console.log('[voiceMsg] \u65e0\u8bc6\u522b\u7ed3\u679c');
-    aM('marx', '语音识别失败，请切换文字模式。');
-  }
-  scrollB();
-}
-
-
-
-// webm → wav 转换
-function convertWebmToWav(webmBlob) {
-  return new Promise(function(resolve, reject) {
-    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    var fileReader = new FileReader();
-    fileReader.onload = async function() {
-      try {
-        var audioBuffer = await audioCtx.decodeAudioData(fileReader.result);
-        var numChannels = audioBuffer.numberOfChannels;
-        var sampleRate = audioBuffer.sampleRate;
-        var length = audioBuffer.length;
-        var offlineCtx = new OfflineAudioContext(1, length, 16000);
-        var source = offlineCtx.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(offlineCtx.destination);
-        source.start();
-        var rendered = await offlineCtx.startRendering();
-        var pcmData = rendered.getChannelData(0);
-        var wavBuffer = encodeWav(pcmData, 16000);
-        var wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
-        resolve(wavBlob);
-      } catch(e) {
-        console.error('[convert] 转码失败:', e);
-        // 降级：返回原始 blob
-        resolve(webmBlob);
-      }
-    };
-    fileReader.onerror = function() { reject(fileReader.error); };
-    fileReader.readAsArrayBuffer(webmBlob);
-  });
-}
-
-function encodeWav(samples, sampleRate) {
-  var buffer = new ArrayBuffer(44 + samples.length * 2);
-  var view = new DataView(buffer);
-  function writeString(offset, str) { for (var i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); }
-  writeString(0, 'RIFF');
-  view.setUint32(4, 36 + samples.length * 2, true);
-  writeString(8, 'WAVE');
-  writeString(12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, 1, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  writeString(36, 'data');
-  view.setUint32(40, samples.length * 2, true);
-  for (var i = 0; i < samples.length; i++) {
-    var s = Math.max(-1, Math.min(1, samples[i]));
-    view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-  }
-  return buffer;
-}
-
-function speechToText(blob) {
-  return new Promise((resolve, reject) => {
-    if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
-      reject(new Error('浏览器不支持'));
-      return;
-    }
-    const sr = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    sr.lang = 'zh-CN';
-    sr.interimResults = false;
-    sr.maxAlternatives = 1;
-    let done = false;
-    sr.onresult = e => { done = true; resolve(e.results[0][0].transcript); };
-    sr.onerror = e => { if (!done) { done = true; reject(e.error); } };
-    sr.onend = () => { if (!done) { done = true; reject(new Error('no-speech')); } };
-    sr.start();
-    setTimeout(() => { if (!done) { sr.abort(); done = true; reject(new Error('timeout')); } }, 10000);
-  });
-}
-
-// === 实时语音通话 ===
-function enterLiveVoice() {
-  var o = document.getElementById('liveOverlay');
-  if (o) {
-    o.classList.remove('hidden');
-    var btn = document.getElementById('lvMic');
-    if (btn) startLiveMic(btn);
-  }
-}
-
-function exitLiveVoice() {
-  stopLiveMic();
-  var o = document.getElementById('liveOverlay');
-  if (o) o.classList.add('hidden');
-}
-
-function toggleLiveMic(btn) {
-  if (liveActive) {
-    stopLiveMic();
-    setLiveStatus('已停止', '');
-  } else {
-    startLiveMic(btn);
-  }
-}
-
-function startLiveMic(btn) {
-  setLiveStatus('正在连接...', '');
-
-  liveActive = true;
-  btn.classList.add('lv-active');
-  setLiveStatus('正在聊听...', 'listening');
-  startLiveWave('idle');
-
-  var audioChunks = [];
-  var vadSpeaking = false;
-  var vadSilentStart = 0;
-  var sending = false;
-  var pollRunning = true;
-  var recorder = null;
-  var analyser = null;
-  var audioCtx = null;
-  var stream = null;
-  var pollTimer = null;
-
-  // 重置流式对话状态
-  liveReplyEl = null;
-  liveAudioQueue = [];
-  liveAudioPlaying = false;
-  var chatBox = document.getElementById('lvChat');
-  if (chatBox) chatBox.innerHTML = '';
-  ge('lvTrans').className = 'lv-trans';
-  ge('lvTrans').textContent = '';
-
-  (async function() {
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') await audioCtx.resume();
-      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-
-      // AnalyserNode 实时音量检测
-      var src = audioCtx.createMediaStreamSource(stream);
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 256;
-      src.connect(analyser);
-      var dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-      // MediaRecorder 录音
-      var mt = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
-      recorder = new MediaRecorder(stream, { mimeType: mt });
-      recorder.start(1000);
-
-      recorder.ondataavailable = function(e) {
-        if (e.data.size > 0) audioChunks.push(e.data);
-      };
-
-      startLiveWave('user');
-
-      // ── 建立 WebSocket 连接 ──
-      var wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      var wsUrl = wsProto + '//' + window.location.host + '/ws/voice';
-      var ws = new WebSocket(wsUrl);
-      liveWS = ws;
-
-      ws.onopen = function() {
-        console.log('[liveWS] 已连接');
-      };
-
-      ws.onmessage = function(evt) {
-        try {
-          var d = JSON.parse(evt.data);
-
-          if (d.type === 'transcript_reply') {
-            appendLiveReply(d.text);
-          }
-
-          if (d.type === 'audio_chunk') {
-            queueLiveAudio(d.audio);
-          }
-
-          if (d.type === 'done') {
-            setLiveStatus('正在聆听...', 'listening');
-            startLiveWave('idle');
-            // 把完整回复写入对话历史
-            if (d.full_text) {
-              addTS();
-              var transcript = ge('lvTrans');
-              if (transcript) { transcript.textContent = d.full_text; transcript.className = 'lv-trans show'; }
-              aM('user', '🎤 语音消息');
-              aM('marx', d.full_text);
-              if (hist) {
-                hist.push({role:'user',content:'🎤 语音消息'});
-                hist.push({role:'assistant',content:d.full_text});
+        body: JSON.stringify({ message: transcript, history: history.slice(-8) })
+      })
+      .then(function(resp) {
+        var rdr = resp.body.getReader()
+        var decoder = new TextDecoder()
+        var buf = ''
+        var fullReply = ''
+        function readChunk() {
+          rdr.read().then(function(result) {
+            if (result.done) {
+              if (history) { history.push({role:'assistant', content: fullReply}); if (history.length > 20) history = history.slice(-20) }
+              // 流结束，如果音频已播完则切idle
+              if (!liveAudioPlaying && liveAudioQueue.length === 0) {
+                setVideoState('idle')
               }
-              scrollB();
+              resumeListenHTTP()
+              return
             }
-          }
-
-          if (d.type === 'transcript') {
-            // 已识别文字（旧消息，保持兼容）
-            console.log('[liveWS] 识别:', d.text);
-            setLiveStatus('已识别: ' + d.text, 'thinking');
-          }
-
-          if (d.type === 'answer') {
-            // 旧版完整音频（保持兼容）
-            if (d.audio) {
-              queueLiveAudio(d.audio);
+            buf += decoder.decode(result.value, {stream: true})
+            var lines = buf.split('\n')
+            buf = lines.pop()
+            for (var i = 0; i < lines.length; i++) {
+              var line = lines[i].trim()
+              if (!line || !line.startsWith('data: ')) continue
+              try {
+                var evt = JSON.parse(line.substring(6))
+                if (evt.type === 'text') {
+                  fullReply += evt.delta
+                  // 文字独立显示：SSE流来就更新，不等音频
+                  if (marxLine) marxLine.textContent = fullReply
+                  var elMarx = document.getElementById('lvMarx')
+                  if (elMarx) elMarx.textContent = fullReply
+                } else if (evt.type === 'audio' && evt.audio) {
+                  lastReplyText = fullReply
+                  liveAudioQueue.push(evt.audio)
+                  if (!liveAudioPlaying) consumeLiveAudioHTTP()
+                }
+              } catch(e) {}
             }
-          }
-
-          if (d.type === 'status') {
-            setLiveStatus(d.text, '');
-          }
-
-          if (d.type === 'error') {
-            console.error('[liveWS] 错误:', d.text);
-            setLiveStatus('错误: ' + d.text, '');
-          }
-
-          if (d.type === 'pong') {
-            // 心跳回复，无需处理
-          }
-        } catch(e) {
-          console.error('[liveWS] 解析失败:', e, evt.data);
+            readChunk()
+          }).catch(function(e) {
+            console.error('[liveSSE] read err:', e)
+            resumeListenHTTP()
+          })
         }
-      };
-
-      ws.onclose = function() {
-        console.log('[liveWS] 已断开');
-        if (liveWS === ws) liveWS = null;
-      };
-
-      ws.onerror = function(e) {
-        console.error('[liveWS] 连接错误:', e);
-        setLiveStatus('WebSocket连接失败，使用HTTP', '');
-        // 降级：ws 不可用时 fallback 到 HTTP
-      };
-
-      // ── 用 WebSocket 发送16kHz PCM 数据 ──
-      // 用 ScriptProcessorNode 采集16kHz PCM
-      var scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
-      src.connect(scriptNode);
-      scriptNode.connect(audioCtx.destination);
-
-      scriptNode.onaudioprocess = function(ae) {
-        if (!pollRunning || !ws || ws.readyState !== WebSocket.OPEN) return;
-        var input = ae.inputBuffer.getChannelData(0);
-        // 降采样到16kHz
-        var step = Math.round(audioCtx.sampleRate / 16000);
-        var pcm = new Int16Array(Math.ceil(input.length / step));
-        var rmsSum = 0;
-        for (var i = 0, j = 0; i < input.length; i += step, j++) {
-          var s = Math.max(-1, Math.min(1, input[i]));
-          pcm[j] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-          rmsSum += s * s;
-        }
-        var rms = Math.sqrt(rmsSum / pcm.length);
-
-        // 发送 PCM 数据到 WebSocket
-        try {
-          ws.send(pcm.buffer);
-        } catch(e) {}
-
-        // 本地 VAD 检测（用于 UI 反馈）
-        var hasVoice = rms > 500 / 32768;
-
-        if (hasVoice && !vadSpeaking) {
-          vadSpeaking = true;
-          vadSilentStart = 0;
-          setLiveStatus('正在听您说话...', 'listening');
-          startLiveWave('user');
-        } else if (!hasVoice && vadSpeaking) {
-          if (vadSilentStart === 0) {
-            vadSilentStart = Date.now();
-            console.log('[liveVAD] -> silent start');
-          } else if (Date.now() - vadSilentStart > 2000) {
-            vadSpeaking = false;
-            vadSilentStart = 0;
-            setLiveStatus('等待回答...', 'thinking');
-            startLiveWave('idle');
-          }
-        } else if (hasVoice && vadSpeaking) {
-          vadSilentStart = 0;
-        } else if (!hasVoice && !vadSpeaking) {
-          vadSilentStart = 0;
-        }
-      };
-
-      liveScriptNode = scriptNode;
-
-      // 保存变量
-      livePollTimer = pollTimer;
-      liveRecorder = recorder;
-      liveVADCtx = audioCtx;
-      liveStream = stream;
-
-    } catch(e) {
-      console.error('[liveVAD] 启动失败:', e);
-      setLiveStatus('麦克风失败', '');
-      stopLiveMic();
+        readChunk()
+      })
+      .catch(function(e) {
+        console.error('[liveSSE] fetch err:', e)
+        resumeListenHTTP()
+      })
+    })
+    .catch(function(e) {
+      console.error('[liveHTTP] voice err:', e)
+      resumeListenHTTP()
+    })
+  }
+  reader.readAsDataURL(blob)
+}
+function stopLiveMicHTTP() {
+  liveRecState = 'stopped'
+  if (liveVADTimer) { clearInterval(liveVADTimer); liveVADTimer = null }
+  if (liveMediaRec && liveMediaRec.state === 'recording') { try { liveMediaRec.stop() } catch(e) {} }
+  if (liveMicStream) { try { liveMicStream.getTracks().forEach(function(t){t.stop()}); liveMicStream = null } catch(e) {} }
+  if (liveAudioCtx) { try { liveAudioCtx.close(); liveAudioCtx = null } catch(e) {} }
+  liveAnalyser = null; liveMediaRec = null; liveRecChunks = []
+  liveVADSpeaking = false; liveVADSilent = 0
+  var btn = document.getElementById('lvMicBtn')
+  if (btn) btn.classList.remove('on')
+  liveRecState = 'idle'
+}
+function resumeListenHTTP() {
+  if (liveRecState !== 'stopped' && liveRecState !== 'idle') {
+    liveRecState = 'recording'
+    document.getElementById('lvHint').textContent = '正在聆听...'
+    setVideoState('idle')
+    startRecSegment()
+  }
+}
+var liveTypeTimer = null
+function consumeLiveAudioHTTP() {
+  if (liveAudioQueue.length === 0) { liveAudioPlaying = false; return }
+  liveAudioPlaying = true
+  var b64 = liveAudioQueue.shift()
+  var audio = decodeB64Audio(b64)
+  document.getElementById('lvHint').textContent = '正在说话...'
+  audio.play().then(function() {
+    setVideoState(pickVideoByReply(lastReplyText || ''))
+  }).catch(function(){})
+  audio.onended = function() {
+    if (liveAudioQueue.length === 0) {
+      liveAudioPlaying = false
+      // 整段回复播完 -> 切回聆听
+      setVideoState('idle')
+    } else {
+      consumeLiveAudioHTTP()
     }
-  })();
-}
-
-function stopLiveMic() {
-  liveActive = false;
-  if (livePollTimer) { clearInterval(livePollTimer); livePollTimer = null; }
-  if (liveRecorder && liveRecorder.state !== 'inactive') { try { liveRecorder.stop(); } catch(e) {} }
-  if (liveStream) { try { liveStream.getTracks().forEach(function(t){t.stop();}); } catch(e) {}}
-  if (liveVADCtx) { try { liveVADCtx.close(); } catch(e) {} }
-  if (liveScriptNode) { try { liveScriptNode.disconnect(); } catch(e) {} }
-  // 关闭 WebSocket
-  if (liveWS) {
-    try { liveWS.close(); } catch(e) {}
-    liveWS = null;
-  }
-  // 清空音频队列
-  liveAudioQueue = [];
-  liveAudioPlaying = false;
-  liveReplyEl = null;
-  liveRecorder = null;
-  liveScriptNode = null;
-  liveVADCtx = null;
-  liveStream = null;
-  var btn = document.getElementById('lvMic');
-  if (btn) btn.classList.remove('lv-active');
-  stopLiveWave();
-}
-
-function setLiveStatus(text, cls) {
-  var el = document.getElementById('lvStatus');
-  if (!el) return;
-  el.textContent = text;
-  el.className = 'lv-status' + (cls ? ' ' + cls : '');
-}
-
-var liveWaveAnimId = null;
-function startLiveWave(mode) {
-  if (liveWaveAnimId) cancelAnimationFrame(liveWaveAnimId);
-  var canvas = document.getElementById('lvWave');
-  if (!canvas) return;
-  var ctx = canvas.getContext('2d');
-  canvas.width = 240; canvas.height = 64;
-  var bars = 48, barW = 240 / bars - 2;
-  function draw() {
-    ctx.clearRect(0, 0, 240, 64);
-    for (var i = 0; i < bars; i++) {
-      var h = mode === 'user' ? 6 + Math.sin(Date.now() / 200 + i * 0.5) * 4 + 2
-            : mode === 'marx' ? 8 + Math.sin(Date.now() / 500 + i * 0.3) * 5
-            : 4 + Math.sin(Date.now() / 600 + i * 0.2) * 2;
-      var x = i * (barW + 2) + 1;
-      var y = (64 - h) / 2;
-      ctx.fillStyle = mode === 'user' ? 'rgba(200,60,60,0.6)'
-                     : mode === 'marx' ? 'rgba(200,169,110,0.4)'
-                     : 'rgba(200,169,110,0.18)';
-      ctx.beginPath();
-      ctx.roundRect(x, y, barW, h, 2);
-      ctx.fill();
-    }
-    liveWaveAnimId = requestAnimationFrame(draw);
-  }
-  draw();
-}
-function stopLiveWave() {
-  if (liveWaveAnimId) { cancelAnimationFrame(liveWaveAnimId); liveWaveAnimId = null; }
-  var canvas = document.getElementById('lvWave');
-  if (!canvas) return;
-  var ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, 240, 64);
-}
-
-var liveAudio = null;
-// ── 流式对话：追加回复文字 ──
-function appendLiveReply(text) {
-  if (!liveReplyEl) {
-    var chatBox = document.getElementById('lvChat');
-    if (!chatBox) return;
-    liveReplyEl = document.createElement('div');
-    liveReplyEl.className = 'lv-bubble marx';
-    chatBox.appendChild(liveReplyEl);
-    chatBox.classList.add('show');
-  }
-  liveReplyEl.textContent += text;
-  var body = document.getElementById('lvBody');
-  if (body) body.scrollTop = body.scrollHeight;
-}
-
-// ── 流式音频队列 ──
-function queueLiveAudio(b64) {
-  liveAudioQueue.push(b64);
-  if (!liveAudioPlaying) {
-    consumeLiveAudioQueue();
   }
 }
 
-function consumeLiveAudioQueue() {
-  if (liveAudioQueue.length === 0) {
-    liveAudioPlaying = false;
-    return;
+// ══════════════════════════════════════
+// 音频播放
+// ══════════════════════════════════════
+function decodeB64Audio(b64) {
+  var bin = atob(b64), bytes = new Uint8Array(bin.length)
+  for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+  var blob = new Blob([bytes], { type: 'audio/mpeg' })
+  return new Audio(URL.createObjectURL(blob))
+}
+function playB64(b64, btn, onEnd) {
+  if (currentAudio) { currentAudio.pause(); currentAudio = null }
+  var audio = decodeB64Audio(b64)
+  currentAudio = audio
+  if (btn) { btn.classList.add('playing'); btn.textContent = '⏹ 播放中' }
+  audio.play().catch(function(){})
+  audio.onended = function() {
+    currentAudio = null
+    if (btn) { btn.classList.remove('playing'); btn.textContent = '▶ 聆听' }
+    if (onEnd) onEnd()
   }
-  liveAudioPlaying = true;
-  var b64 = liveAudioQueue.shift();
-  var url = base64ToBlobUrl(b64);
-  if (!url) {
-    console.error('[liveAudio] Blob URL失败');
-    consumeLiveAudioQueue();
-    return;
+}
+
+// ══════════════════════════════════════
+// DOM 操作
+// ══════════════════════════════════════
+function hideIdle() {
+  var p = document.getElementById('idlePanel')
+  if (p) p.style.display = 'none'
+  document.getElementById('portraitQuote').classList.add('hidden')
+}
+function addQ(text) {
+  var d = document.getElementById('dialogue')
+  var div = document.createElement('div')
+  div.className = 'q-row'
+  div.innerHTML = '<div class="q-bbl">' + esc(text) + '</div>'
+  d.appendChild(div)
+}
+function addA(text, audio) {
+  var d = document.getElementById('dialogue')
+  var div = document.createElement('div')
+  div.className = 'a-row'
+  var clean = esc(text).replace(/\n/g,'<br>')
+  div.innerHTML = '<div class="a-meta"><img class="a-avatar" src="mks.png" alt=""><span class="a-name">Karl Marx</span></div><div class="a-card"><div class="a-card-quote">\u201C</div><div class="a-card-body">' + clean + '</div><div class="a-card-footer"><span class="a-cite">\u2014 London \u00b7 1867</span>' + (audio ? '<button class="a-play" onclick="playB64(\'' + audio + '\',this)">\u25b6 \u8046\u542c</button>' : '') + '</div></div>'
+  d.appendChild(div)
+}
+function addThinking() {
+  var d = document.getElementById('dialogue')
+  var div = document.createElement('div')
+  div.className = 'thinking-row'
+  div.id = 'tk' + Date.now()
+  div.innerHTML = '<img class="thinking-avatar" src="mks.png" alt=""><div class="thinking-bbl"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>'
+  d.appendChild(div)
+  return div.id
+}
+function addErr(msg) {
+  var d = document.getElementById('dialogue')
+  var div = document.createElement('div')
+  div.innerHTML = '<div style="font-size:12px;color:var(--text-mu);text-align:center;padding:6px">' + msg + '</div>'
+  d.appendChild(div)
+}
+function removeEl(id) { var e = document.getElementById(id); if (e) e.remove() }
+function scrollBottom() {
+  var s = document.getElementById('scroll')
+  if (s) s.scrollTo({ top: s.scrollHeight, behavior: 'smooth' })
+}
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+setMode('text')
+setStatus('idle')
+
+// ── 思辨/引用模式开关 ──
+let modeFlags = { sibian: false, yinyong: false }
+
+function toggleMode(type) {
+  if (modeFlags[type]) {
+    modeFlags[type] = false
+    document.getElementById(type === 'sibian' ? 'btnSibian' : 'btnYinyong').classList.remove('on')
+  } else {
+    modeFlags.sibian = false
+    modeFlags.yinyong = false
+    document.getElementById('btnSibian').classList.remove('on')
+    document.getElementById('btnYinyong').classList.remove('on')
+    modeFlags[type] = true
+    document.getElementById(type === 'sibian' ? 'btnSibian' : 'btnYinyong').classList.add('on')
   }
-  var au = new Audio(url);
-  setLiveStatus('正在说话...', 'speaking');
-  startLiveWave('marx');
-  au.onended = function() {
-    URL.revokeObjectURL(url);
-    consumeLiveAudioQueue();
-  };
-  au.onerror = function() {
-    URL.revokeObjectURL(url);
-    consumeLiveAudioQueue();
-  };
-  au.play().catch(function(e) {
-    console.error('[liveAudio] 播放失败:', e);
-    URL.revokeObjectURL(url);
-    consumeLiveAudioQueue();
-  });
 }
 
-function playLiveAudio(b64) {
-  if (liveAudio) { try { liveAudio.pause(); } catch(e) {} liveAudio = null; }
-  var url = base64ToBlobUrl(b64);
-  if (!url) { console.error('[liveAudio] Blob URL失败'); return; }
-  var au = new Audio(url);
-  au._url = url;
-  liveAudio = au;
-  au.onended = function() { URL.revokeObjectURL(au._url); liveAudio = null; };
-  au.play().catch(function(e) { console.error('[liveAudio] play失败:', e); URL.revokeObjectURL(au._url); liveAudio = null; });
+function getMessageWithPrefix() {
+  const box = document.getElementById('ibox')
+  let text = box.value.trim()
+  if (!text) return ''
+  if (modeFlags.sibian) text = '【思辨:】' + text
+  if (modeFlags.yinyong) text = '【引用:】' + text
+  return text
 }
-// === + 面板 ===
-ge('pbtn').onclick = function() {
-  var p = ge('ppanel'), o = ge('pover'), s = !p.classList.contains('show');
-  p.classList.toggle('show', s);
-  o.classList.toggle('show', s);
-  ge('pbtn').classList.toggle('act', s);
-};
-ge('pover').onclick = ge('pbtn').onclick;
 
-function tog(m) {
-  if (m === 'debate') { debate = !debate; ge('togD').classList.toggle('on', debate); if (debate) cite = false; }
-  if (m === 'cite') { cite = !cite; ge('togC').classList.toggle('on', cite); if (cite) debate = false; }
-  updB();
-}
-function updB() {
-  var b = ge('modeBadge'), t = ge('modeTag');
-  if (debate) { b.classList.add('show'); t.textContent = '思辨模式'; }
-  else if (cite) { b.classList.add('show'); t.textContent = '引用模式'; }
-  else b.classList.remove('show');
-}
-function qt(t) { ge('pbtn').onclick(); ge('ibox').value = pFix() + t; ar(ge('ibox')); sendT(); }
-function ar(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 80) + 'px'; }
-function ok(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendT(); } }
-function pFix() { if (debate) return '【思辨:】'; if (cite) return '【引用:】'; return ''; }
+// ── 历史对话 ──
+let currentConvId = null
 
-async function sendT() {
-  console.log('[sendT] ========== sendT 开始 ==========');
-  if (sending) { console.log('[sendT] busy, 忽略'); return; }
-  var box = ge('ibox');
-  var t = box.value.trim();
-  if (!t) { console.log('[sendT] empty'); return; }
-  var pf = pFix();
-  if (pf && !t.startsWith(pf)) { t = pf + t; box.value = t; }
-  sending = true;
-  addTS();
-  aM('user', t);
-  box.value = '';
-  box.style.height = 'auto';
-  thinkId = aThink();
-  scrollB();
-  hist.push({ role: 'user', content: t });
-  console.log('[sendT] POST /chat, hist:', hist.length);
+function openHistory() {
+  document.getElementById('histMask').classList.remove('hidden')
+  const panel = document.getElementById('histPanel')
+  panel.classList.remove('hidden')
+  setTimeout(() => panel.classList.add('open'), 10)
+  loadHistoryList()
+}
+
+function closeHistory() {
+  const panel = document.getElementById('histPanel')
+  panel.classList.remove('open')
+  setTimeout(() => {
+    panel.classList.add('hidden')
+    document.getElementById('histMask').classList.add('hidden')
+  }, 300)
+}
+
+async function loadHistoryList() {
+  const list = document.getElementById('histList')
+  list.innerHTML = '<div class="hist-loading">加载中...</div>'
   try {
-    var r = await fetch(API + '/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: t, history: hist.slice(0, -1), tts: false }) });
-    console.log('[sendT] status:', r.status);
-    rThink(thinkId); thinkId = null;
-    if (!r.ok) throw Error('HTTP ' + r.status);
-    var d = await r.json();
-    if (d.error) { aErr(d.error); hist.pop(); }
-    else {
-      addTS();
-      aM('marx', d.reply);
-      hist.push({ role: 'assistant', content: d.reply });
-      if (hist.length > 20) hist = hist.slice(-20);
+    const res = await fetch(API_BASE + '/conversations')
+    const data = await res.json()
+    if (!data.length) {
+      list.innerHTML = '<div class="hist-loading">还没有历史对话</div>'
+      return
     }
-  } catch (e) {
-    console.error('[sendT] 失败:', e);
-    if (thinkId) { rThink(thinkId); thinkId = null; }
-    aErr('请求失败: ' + e.message);
-    hist.pop();
-  }
-  sending = false;
-  scrollB();
-}
-
-function addTS() {
-  tsCnt++;
-  if (tsCnt % 5 === 0 || !lastTs || Date.now() - lastTs > 300000) {
-    var d = new Date();
-    var s = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-    var div = document.createElement('div');
-    div.className = 'ts-div';
-    div.textContent = s;
-    ge('msgs').appendChild(div);
-    lastTs = Date.now();
-  }
-}
-
-function aM(role, t) {
-  var msgs = ge('msgs'), div = document.createElement('div');
-  div.className = 'msg ' + role;
-  var av = document.createElement('div');
-  av.className = 'mav ' + (role === 'user' ? 'u' : 'm');
-  if (role === 'marx') av.innerHTML = '<img src="marx-avatar.png?v=2">';
-  var bub = document.createElement('div');
-  bub.className = 'bubble';
-  bub.innerHTML = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-  div.appendChild(av);
-  div.appendChild(bub);
-  if (role === 'marx') {
-    var sp = document.createElement('button');
-    sp.className = 'spkr';
-    sp.innerHTML = '🔊 听语音';
-    sp.onclick = function(ev) {
-      ev.stopPropagation();
-      if (!div.dataset.audio) { loadTTS(div); }
-      playMX(div);
-    };
-    bub.appendChild(sp);
-  }
-  msgs.appendChild(div);
-  return div;
-}
-
-function aVB(role, dur) {
-  var msgs = ge('msgs'), div = document.createElement('div');
-  div.className = 'msg ' + role;
-  var av = document.createElement('div');
-  av.className = 'mav ' + (role === 'user' ? 'u' : 'm');
-  if (role === 'marx') av.innerHTML = '<img src="marx-avatar.png?v=2">';
-  var bub = document.createElement('div');
-  bub.className = 'bubble';
-  var vb = document.createElement('div');
-  vb.className = 'vbub';
-  var vi = document.createElement('span');
-  vi.className = 'vico';
-  vi.textContent = role === 'user' ? '🎤' : '🔊';
-  var wv = document.createElement('div');
-  wv.className = 'vwave';
-  for (var i = 0; i < 5; i++) { var b = document.createElement('div'); b.className = 'bar'; b.style.height = (6 + Math.random()*10) + 'px'; wv.appendChild(b); }
-  var vd = document.createElement('span');
-  vd.className = 'vdur';
-  vd.textContent = dur + '″';
-  if (role === 'user') vb.append(vi, vd, wv);
-  else vb.append(vi, wv, vd);
-  bub.appendChild(vb);
-  div.appendChild(av);
-  div.appendChild(bub);
-  msgs.appendChild(div);
-  return div;
-}
-
-function aThink() {
-  var msgs = ge('msgs'), div = document.createElement('div');
-  div.className = 'msg marx';
-  var id = 't' + Date.now();
-  div.id = id;
-  div.innerHTML = '<div class="mav m"><img src="marx-avatar.png?v=2"></div><div class="bubble"><div class="think"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>';
-  msgs.appendChild(div);
-  return id;
-}
-function rThink(id) { var el = ge(id); if (el) el.remove(); }
-function aErr(m) {
-  var msgs = ge('msgs'), div = document.createElement('div');
-  div.className = 'msg marx';
-  div.innerHTML = '<div class="mav m">⚠</div><div class="err-bubble">' + m + '</div>';
-  msgs.appendChild(div);
-}
-function scrollB() { ge('msgs').scrollTo({ top: ge('msgs').scrollHeight, behavior: 'smooth' }); }
-
-function loadTTS(el) {
-  if (el.dataset.audio) { return; }
-  var bub = el.querySelector('.bubble');
-  if (!bub) { return; }
-  var text = bub.textContent.replace('🔊 听语音', '').trim();
-  fetch(API + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: text }) })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    if (d.audio) { el.dataset.audio = d.audio; playMX(el); }
-  })
-  .catch(function(e) { console.error('[loadTTS] err:', e); });
-}
-
-function playMX(el) {
-  var ab64 = el.dataset.audio;
-  if (!ab64) { return; }
-  if (curAud && isPlay && curAud._el === el) {
-    curAud.pause(); isPlay = false;
-    var sp = el.querySelector('.spkr'); if (sp) sp.classList.remove('pl');
-    return;
-  }
-  aQueue.push({ b64: ab64, el: el });
-  if (!isPlay) playQ();
-}
-function autoPlay(el) { aQueue.unshift({ b64: el.dataset.audio, el: el }); if (!isPlay) playQ(); }
-
-function base64ToBlobUrl(b64) {
-  try {
-    var binary = atob(b64);
-    var bytes = new Uint8Array(binary.length);
-    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    var blob = new Blob([bytes], {type: 'audio/mpeg'});
-    return URL.createObjectURL(blob);
+    list.innerHTML = data.map(item => `
+      <div class="hist-item" onclick="loadConversation('${item.id}')">
+        <div class="hist-item-left">
+          <div class="hist-item-title">${item.title}</div>
+          <div class="hist-item-time">${item.updated_at}</div>
+        </div>
+        <button class="hist-item-del" onclick="event.stopPropagation();deleteConversation('${item.id}',this)">✕</button>
+      </div>
+    `).join('')
   } catch(e) {
-    console.error('[audio] base64ToBlobUrl失败:', e);
-    return null;
+    list.innerHTML = '<div class="hist-loading">加载失败</div>'
   }
 }
 
-function playQ() {
-  if (aQueue.length === 0) { isPlay = false; curAud = null; ge('audioProgressFill').style.width = '0'; return; }
-  isPlay = true;
-  var item = aQueue.shift();
-  var sp = item.el.querySelector('.spkr'); if (sp) sp.classList.add('pl');
-  var url = base64ToBlobUrl(item.b64);
-  if (!url) { if (sp) sp.classList.remove('pl'); isPlay = false; playQ(); return; }
-  var au = new Audio(url);
-  au._el = item.el; au._url = url; curAud = au;
-  au.ontimeupdate = function() { var p = (au.currentTime / au.duration) * 100; ge('audioProgressFill').style.width = Math.min(p, 100) + '%'; };
-  au.onended = function() { if (sp) sp.classList.remove('pl'); ge('audioProgressFill').style.width = '0'; URL.revokeObjectURL(au._url); curAud = null; isPlay = false; playQ(); };
-  au.onerror = function() { if (sp) sp.classList.remove('pl'); ge('audioProgressFill').style.width = '0'; if(au._url)URL.revokeObjectURL(au._url); curAud = null; isPlay = false; playQ(); };
-  au.play().catch(function() { if (sp) sp.classList.remove('pl'); if(au._url)URL.revokeObjectURL(au._url); curAud = null; isPlay = false; playQ(); });
+async function loadConversation(id) {
+  try {
+    const res = await fetch(API_BASE + '/conversations/' + id)
+    const data = await res.json()
+    document.getElementById('dialogue').innerHTML = ''
+    document.getElementById('idlePanel').style.display = 'none'
+    history = []
+    currentConvId = id
+    const messages = data.messages || []
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i]
+      if (msg.role === 'user') {
+        addQ(msg.content)
+      } else if (msg.role === 'assistant') {
+        addA(msg.content, null)
+      }
+      history.push(msg)
+    }
+    scrollBottom()
+    closeHistory()
+  } catch(e) {
+    console.error('[history] 加载失败', e)
+  }
 }
 
-function clearChat() {
-  if (!confirm('确定清空对话？')) return;
-  ge('msgs').innerHTML = '<div class="ts-div">书房·伦敦·1867年</div><div class="msg marx"><div class="mav m"><img src="marx-avatar.png?v=2"></div><div class="bubble">来访者，你好。<br>我是卡尔·马克思。有何问题想与我讨论？</div></div>';
-  hist = []; tsCnt = 0;
-  ge('ppanel').classList.remove('show');
-  ge('pover').classList.remove('show');
-  ge('pbtn').classList.remove('act');
+function newConversation() {
+  currentConvId = null
+  history = []
+  document.getElementById('dialogue').innerHTML = ''
+  const idle = document.getElementById('idlePanel')
+  if (idle) idle.style.display = ''
+  document.getElementById('portraitQuote').classList.remove('hidden')
+  closeHistory()
 }
 
+async function deleteConversation(id, btn) {
+  try {
+    await fetch(API_BASE + '/conversations/' + id, { method: 'DELETE' })
+    btn.closest('.hist-item').remove()
+  } catch(e) {}
+}
+
+async function autoSaveConversation() {
+  if (history.length < 2) return
+  try {
+    const res = await fetch(API_BASE + '/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: currentConvId,
+        messages: history
+      })
+    })
+    const data = await res.json()
+    if (data.id) currentConvId = data.id
+  } catch(e) {}
+}
 </script>
 </body>
 </html>
