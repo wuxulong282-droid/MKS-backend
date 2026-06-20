@@ -46,6 +46,10 @@ def not_found(e):
 def health_check():
     return jsonify({"status":"ok"})
 
+@app.route('/ping')
+def ping():
+    return jsonify({"pong": True})
+
 def health():
     return jsonify({
         "status": "ok",
