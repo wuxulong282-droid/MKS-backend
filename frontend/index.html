@@ -1416,153 +1416,54 @@ function getDemoReply(q) {
 }
 
 // ══════════════════════════════════════
-// 语音消息（按住说话）— 纯前端 Web Speech API，无需录音
+// 语音消息（按住说话）— 录音后走讯飞识别
 // ══════════════════════════════════════
-let _speechRec = null
-let _speechResult = ''
-let _speechDone = false
-
 function hS(e) {
   e.preventDefault()
   if (isRec) return
-
+  shouldSend = false
   const btn = document.getElementById('holdBtn')
-  btn.classList.add('pr')
-  btn.textContent = '松开 发送'
-
-  // 重置识别状态
-  _speechResult = ''
-  _speechDone = false
-
-  // 启动 Web Speech 识别
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-  if (SR) {
-    _speechRec = new SR()
-    _speechRec.lang = 'zh-CN'
-    _speechRec.continuous = true
-    _speechRec.interimResults = true
-
-    _speechRec.onresult = (e) => {
-      let final = ''
-      let interim = ''
-      for (let i = 0; i < e.results.length; i++) {
-        if (e.results[i].isFinal) {
-          final += e.results[i][0].transcript
-        } else {
-          interim += e.results[i][0].transcript
-        }
-      }
-      _speechResult = final || interim
-      // 实时显示在按钮上
-      if (_speechResult) btn.textContent = _speechResult
-    }
-
-    _speechRec.onend = () => {
-      _speechDone = true
-      // 识别结束后如果用户已经松开，直接发送
-      if (_speechResult) {
-        _doSendVoice(_speechResult)
-      } else {
-        btn.classList.remove('pr')
-        btn.textContent = '按住 说话'
-        addMsg('system', '未识别到语音，请重试')
-      }
-    }
-
-    _speechRec.onerror = (e) => {
-      console.log('[speech] 错误:', e.error)
-      _speechDone = true
-      btn.classList.remove('pr')
-      btn.textContent = '按住 说话'
-    }
-
-    try { _speechRec.start() } catch(e) {}
-  }
-
+  btn.classList.add('pr'); btn.textContent = '松开 发送'
+  startRec()
   isRec = true
   recStart = Date.now()
 }
-
 function hE(e) {
   e.preventDefault()
   if (!isRec) return
-  isRec = false
-
+  shouldSend = true
   const btn = document.getElementById('holdBtn')
   btn.classList.remove('pr')
-  btn.textContent = _speechResult || '处理中...'
-
-  // 停止语音识别，等 onend 回调发送
-  if (_speechRec) {
-    try { _speechRec.stop() } catch(e) {}
-  }
+  isRec = false
+  if (recTimer) { clearInterval(recTimer); recTimer = null }
+  if (mr && mr.state === 'recording') mr.stop()
 }
-
 function hC(e) {
   e.preventDefault()
   if (!isRec) return
+  shouldSend = false
+  const btn = document.getElementById('holdBtn')
+  btn.classList.remove('pr'); btn.textContent = '按住 说话'
   isRec = false
-
-  const btn = document.getElementById('holdBtn')
-  btn.classList.remove('pr')
-  btn.textContent = '按住 说话'
-
-  // 取消，不发送
-  if (_speechRec) {
-    _speechRec.onend = null
-    _speechRec.onresult = null
-    try { _speechRec.stop() } catch(e) {}
-    _speechRec = null
-  }
-  _speechResult = ''
+  if (mr && mr.state === 'recording') mr.stop()
 }
-
-// 实际发送函数
-async function _doSendVoice(text) {
-  const btn = document.getElementById('holdBtn')
-  btn.textContent = '按住 说话'
-  _speechRec = null
-
-  if (!text || !text.trim()) return
-
-  hideIdle()
-  addQ(text)
-  history.push({ role: 'user', content: text })
-
-  setStatus('thinking')
-  const tid = addThinking()
-  scrollBottom()
-
-  try {
-    const res = await fetch(API_BASE + '/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: text,
-        history: history.slice(0, -1),
-        tts: false
-      })
-    })
-    const data = await res.json()
-    removeEl(tid)
-    if (data.reply) {
-      addA(data.reply, data.audio)
-      history.push({ role: 'assistant', content: data.reply })
-      if (history.length > 20) history = history.slice(-20)
-      setStatus('speaking')
-      if (data.audio) {
-        playB64(data.audio, null, () => setStatus('idle'))
-      } else {
-        setTimeout(() => setStatus('idle'), 3000)
+function startRec() {
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(st => {
+    const mt = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus' : 'audio/webm'
+    mr = new MediaRecorder(st, { mimeType: mt })
+    aChunks = []; recStart = Date.now()
+    mr.ondataavailable = e => { if (e.data.size > 0) aChunks.push(e.data) }
+    mr.onstop = () => {
+      st.getTracks().forEach(t => t.stop())
+      if (shouldSend && aChunks.length > 0) {
+        const dur = Math.max(1, Math.floor((Date.now() - recStart) / 1000))
+        sendVoiceXF(aChunks.slice(), dur)
       }
-      autoSaveConversation()
+      aChunks = []; shouldSend = false
     }
-  } catch(err) {
-    removeEl(tid)
-    addA('出错了，请重试', null)
-    setStatus('idle')
-  }
-  scrollBottom()
+    mr.start(100)
+  }).catch(e => console.error('[mic]', e))
 }
 
 // ══════════════════════════════════════
@@ -1942,6 +1843,198 @@ async function autoSaveConversation() {
     const data = await res.json()
     if (data.id) currentConvId = data.id
   } catch(e) {}
+}
+
+// ══ 讯飞前端语音识别 ══
+const XF_APPID = '3f02a7e2'
+const XF_APIKEY = '41804e1ae740104d544af0d4fa7af684'
+const XF_APISECRET = 'MWY3MzNjOGEyZWE4M2Q0YmRkYzJkYzky'
+
+async function xfGenUrl() {
+  const host = 'iat-api.xfyun.cn'
+  const path = '/v2/iat'
+  const now = new Date()
+  const date = now.toUTCString()
+  const sigOrigin = `host: ${host}\ndate: ${date}\nGET ${path} HTTP/1.1`
+  
+  // 用 SubtleCrypto 做 HMAC-SHA256
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(XF_APISECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false, ['sign']
+  )
+  const sig = await crypto.subtle.sign(
+    'HMAC', key,
+    new TextEncoder().encode(sigOrigin)
+  )
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)))
+  const auth = btoa(
+    `api_key="${XF_APIKEY}", algorithm="hmac-sha256", ` +
+    `headers="host date request-line", signature="${sigB64}"`
+  )
+  return `wss://${host}${path}?authorization=${encodeURIComponent(auth)}&date=${encodeURIComponent(date)}&host=${host}`
+}
+
+function xfRecognize(audioBlob) {
+  return new Promise(async (resolve) => {
+    let result = ''
+    let timer = null
+
+    try {
+      const url = await xfGenUrl()
+      const ws = new WebSocket(url)
+
+      // 超时保护
+      timer = setTimeout(() => {
+        ws.close()
+        resolve(result)
+      }, 10000)
+
+      ws.onopen = async () => {
+        // 转为 PCM 格式
+        const arrayBuf = await audioBlob.arrayBuffer()
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 })
+        const decoded = await audioCtx.decodeAudioData(arrayBuf)
+        const pcmData = decoded.getChannelData(0)
+        const int16 = new Int16Array(pcmData.length)
+        for (let i = 0; i < pcmData.length; i++) {
+          int16[i] = Math.max(-32768, Math.min(32767, pcmData[i] * 32768))
+        }
+        const pcmBytes = new Uint8Array(int16.buffer)
+
+        // 发送第一帧
+        const chunkSize = 1280
+        let offset = 0
+
+        function sendChunk(status) {
+          const chunk = pcmBytes.slice(offset, offset + chunkSize)
+          offset += chunkSize
+          const frame = {
+            common: status === 0 ? { app_id: XF_APPID } : undefined,
+            business: status === 0 ? {
+              language: 'zh_cn', domain: 'iat',
+              accent: 'mandarin', vad_eos: 3000
+            } : undefined,
+            data: {
+              status,
+              format: 'audio/L16;rate=16000',
+              encoding: 'raw',
+              audio: btoa(String.fromCharCode(...chunk))
+            }
+          }
+          // 删除 undefined 字段
+          if (!frame.common) delete frame.common
+          if (!frame.business) delete frame.business
+          ws.send(JSON.stringify(frame))
+        }
+
+        sendChunk(0)
+        const interval = setInterval(() => {
+          if (offset >= pcmBytes.length) {
+            clearInterval(interval)
+            sendChunk(2) // 结束帧
+            return
+          }
+          sendChunk(1)
+        }, 40)
+      }
+
+      ws.onmessage = (e) => {
+        const data = JSON.parse(e.data)
+        if (data.code !== 0) {
+          console.error('[讯飞]', data.message)
+          return
+        }
+        const ws_data = data.data?.result?.ws || []
+        for (const w of ws_data) {
+          for (const cw of w.cw || []) {
+            result += cw.w || ''
+          }
+        }
+        if (data.data?.status === 2) {
+          clearTimeout(timer)
+          ws.close()
+          resolve(result.trim())
+        }
+      }
+
+      ws.onerror = () => {
+        clearTimeout(timer)
+        resolve(result)
+      }
+
+      ws.onclose = () => {
+        clearTimeout(timer)
+        resolve(result.trim())
+      }
+
+    } catch(e) {
+      console.error('[讯飞]', e)
+      clearTimeout(timer)
+      resolve('')
+    }
+  })
+}
+
+// 替换按住说话的发送逻辑
+async function sendVoiceXF(chunks, dur) {
+  hideIdle()
+
+  const vDiv = document.createElement('div')
+  vDiv.className = 'voice-row'
+  vDiv.innerHTML = `<div class="voice-bbl">
+ <span class="voice-wave">🎤</span>识别中...
+ </div>`
+  document.getElementById('dialogue').appendChild(vDiv)
+  scrollBottom()
+
+  // 调用讯飞识别
+  const blob = new Blob(chunks, { type: 'audio/webm' })
+  const text = await xfRecognize(blob)
+
+  if (!text) {
+    vDiv.querySelector('.voice-bbl').innerHTML =
+      `<span class="voice-wave">🎤</span>未识别到内容，请重试`
+    return
+  }
+
+  // 更新气泡
+  vDiv.querySelector('.voice-bbl').innerHTML =
+    `<span class="voice-wave">🎤</span>${text}`
+
+  // 发给 DeepSeek
+  history.push({ role: 'user', content: text })
+  setStatus('thinking')
+  const tid = addThinking()
+  scrollBottom()
+
+  try {
+    const res = await fetch(API_BASE + '/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        history: history.slice(0, -1),
+        tts: false
+      })
+    })
+    const data = await res.json()
+    removeEl(tid)
+    if (data.reply) {
+      addA(data.reply, data.audio)
+      history.push({ role: 'assistant', content: data.reply })
+      if (history.length > 20) history = history.slice(-20)
+      setStatus('speaking')
+      setTimeout(() => setStatus('idle'), 3000)
+      autoSaveConversation()
+    }
+  } catch(err) {
+    removeEl(tid)
+    addA('出错了，请重试', null)
+    setStatus('idle')
+  }
+  scrollBottom()
 }
 </script>
 </body>
