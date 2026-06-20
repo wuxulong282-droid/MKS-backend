@@ -1416,103 +1416,122 @@ function getDemoReply(q) {
 }
 
 // ══════════════════════════════════════
-// 语音消息（按住说话）
+// 语音消息（按住说话）— 纯前端 Web Speech API，无需录音
 // ══════════════════════════════════════
+let _speechRec = null
+let _speechResult = ''
+let _speechDone = false
+
 function hS(e) {
   e.preventDefault()
   if (isRec) return
-  shouldSend = false
+
   const btn = document.getElementById('holdBtn')
-  btn.classList.add('pr'); btn.textContent = '松开 发送'
-  
-  // 同时启动录音和语音识别
-  startRec()
-  
-  // 启动 Web Speech 实时识别
+  btn.classList.add('pr')
+  btn.textContent = '松开 发送'
+
+  // 重置识别状态
+  _speechResult = ''
+  _speechDone = false
+
+  // 启动 Web Speech 识别
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition
   if (SR) {
-    window._liveRec = new SR()
-    window._liveRec.lang = 'zh-CN'
-    window._liveRec.continuous = true
-    window._liveRec.interimResults = true
-    window._liveRec.onresult = (e) => {
-      const transcript = Array.from(e.results)
-        .map(r => r[0].transcript).join('')
+    _speechRec = new SR()
+    _speechRec.lang = 'zh-CN'
+    _speechRec.continuous = true
+    _speechRec.interimResults = true
+
+    _speechRec.onresult = (e) => {
+      let final = ''
+      let interim = ''
+      for (let i = 0; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          final += e.results[i][0].transcript
+        } else {
+          interim += e.results[i][0].transcript
+        }
+      }
+      _speechResult = final || interim
       // 实时显示在按钮上
-      btn.textContent = transcript || '松开 发送'
+      if (_speechResult) btn.textContent = _speechResult
     }
-    window._liveRec.start()
+
+    _speechRec.onend = () => {
+      _speechDone = true
+      // 识别结束后如果用户已经松开，直接发送
+      if (_speechResult) {
+        _doSendVoice(_speechResult)
+      } else {
+        btn.classList.remove('pr')
+        btn.textContent = '按住 说话'
+        addMsg('system', '未识别到语音，请重试')
+      }
+    }
+
+    _speechRec.onerror = (e) => {
+      console.log('[speech] 错误:', e.error)
+      _speechDone = true
+      btn.classList.remove('pr')
+      btn.textContent = '按住 说话'
+    }
+
+    try { _speechRec.start() } catch(e) {}
   }
+
+  isRec = true
+  recStart = Date.now()
 }
+
 function hE(e) {
   e.preventDefault()
   if (!isRec) return
-  shouldSend = true
-  const btn = document.getElementById('holdBtn')
-  btn.classList.remove('pr'); btn.textContent = '按住 说话'
-  if (recTimer) { clearInterval(recTimer); recTimer = null }
   isRec = false
-  if (window._liveRec) {
-    window._liveRec.stop()
-    window._liveRec = null
+
+  const btn = document.getElementById('holdBtn')
+  btn.classList.remove('pr')
+  btn.textContent = _speechResult || '处理中...'
+
+  // 停止语音识别，等 onend 回调发送
+  if (_speechRec) {
+    try { _speechRec.stop() } catch(e) {}
   }
-  if (mr && mr.state === 'recording') mr.stop()
 }
+
 function hC(e) {
   e.preventDefault()
   if (!isRec) return
-  shouldSend = false
-  const btn = document.getElementById('holdBtn')
-  btn.classList.remove('pr'); btn.textContent = '按住 说话'
   isRec = false
-  if (mr && mr.state === 'recording') mr.stop()
-}
-function startRec() {
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(st => {
-    const mt = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-      ? 'audio/webm;codecs=opus' : 'audio/webm'
-    mr = new MediaRecorder(st, { mimeType: mt })
-    aChunks = []; recStart = Date.now()
-    mr.ondataavailable = e => { if (e.data.size > 0) aChunks.push(e.data) }
-    mr.onstop = () => {
-      st.getTracks().forEach(t => t.stop())
-      if (shouldSend && aChunks.length > 0) {
-        const dur = Math.max(1, Math.floor((Date.now() - recStart) / 1000))
-        sendVoiceWithText(aChunks.slice(), dur)
-      }
-      aChunks = []; shouldSend = false
-    }
-    mr.start(100); isRec = true
-  }).catch(e => console.error('[mic]', e))
-}
-async function sendVoiceWithText(chunks, dur) {
-  hideIdle()
 
-  // 显示用户语音气泡
-  const vDiv = document.createElement('div')
-  vDiv.className = 'voice-row'
-  vDiv.innerHTML = `<div class="voice-bbl">
- <span class="voice-wave">🎤</span>${dur}" 识别中...
- </div>`
-  document.getElementById('dialogue').appendChild(vDiv)
-  scrollBottom()
+  const btn = document.getElementById('holdBtn')
+  btn.classList.remove('pr')
+  btn.textContent = '按住 说话'
 
-  // 用浏览器原生 Web Speech API 识别
-  // 先尝试识别，识别完再走 /chat 接口
-  const text = await recognizeWithWebSpeech()
-
-  // 更新气泡显示识别结果
-  if (text) {
-    vDiv.querySelector('.voice-bbl').innerHTML =
-      `<span class="voice-wave">🎤</span>${text}`
-  } else {
-    vDiv.querySelector('.voice-bbl').innerHTML =
-      `<span class="voice-wave">🎤</span>未能识别，请重试`
-    return
+  // 取消，不发送
+  if (_speechRec) {
+    _speechRec.onend = null
+    _speechRec.onresult = null
+    try { _speechRec.stop() } catch(e) {}
+    _speechRec = null
   }
+  _speechResult = ''
+}
+
+// 实际发送函数
+async function _doSendVoice(text) {
+  const btn = document.getElementById('holdBtn')
+  btn.textContent = '按住 说话'
+  _speechRec = null
+
+  if (!text || !text.trim()) return
+
+  hideIdle()
+  addQ(text)
+  history.push({ role: 'user', content: text })
 
   setStatus('thinking')
   const tid = addThinking()
+  scrollBottom()
 
   try {
     const res = await fetch(API_BASE + '/chat', {
@@ -1520,14 +1539,13 @@ async function sendVoiceWithText(chunks, dur) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: text,
-        history: history,
+        history: history.slice(0, -1),
         tts: false
       })
     })
     const data = await res.json()
     removeEl(tid)
     if (data.reply) {
-      history.push({ role: 'user', content: text })
       addA(data.reply, data.audio)
       history.push({ role: 'assistant', content: data.reply })
       if (history.length > 20) history = history.slice(-20)
@@ -1539,49 +1557,12 @@ async function sendVoiceWithText(chunks, dur) {
       }
       autoSaveConversation()
     }
-  } catch(e) {
+  } catch(err) {
     removeEl(tid)
     addA('出错了，请重试', null)
     setStatus('idle')
   }
   scrollBottom()
-}
-
-// 新增：Web Speech API 识别函数
-function recognizeWithWebSpeech() {
-  return new Promise((resolve) => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) {
-      resolve('')
-      return
-    }
-    const rec = new SR()
-    rec.lang = 'zh-CN'
-    rec.continuous = false
-    rec.interimResults = false
-    rec.maxAlternatives = 1
-
-    // 超时保护：5秒没结果就放弃
-    const timer = setTimeout(() => {
-      rec.stop()
-      resolve('')
-    }, 5000)
-
-    rec.onresult = (e) => {
-      clearTimeout(timer)
-      const text = e.results[0][0].transcript.trim()
-      resolve(text)
-    }
-    rec.onerror = () => {
-      clearTimeout(timer)
-      resolve('')
-    }
-    rec.onend = () => {
-      clearTimeout(timer)
-      resolve('')
-    }
-    rec.start()
-  })
 }
 
 // ══════════════════════════════════════
