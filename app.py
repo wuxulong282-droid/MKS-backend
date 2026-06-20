@@ -44,7 +44,9 @@ def not_found(e):
 # ── 健康检查 ──
 @app.route('/health')
 def health_check():
-    return jsonify({"status":"ok"})
+    import sys
+    routes = [r.rule for r in app.url_map.iter_rules() if r.rule.startswith('/')]
+    return jsonify({"status":"ok","routes":routes,"python":sys.version.split()[0]})
 
 def health():
     return jsonify({

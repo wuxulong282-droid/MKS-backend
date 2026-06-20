@@ -7,6 +7,30 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1b1410">
 <title>对话·马克思</title>
+<script>
+// 全局函数：必须在任何 DOM 事件之前定义
+function resize(el) {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 90) + 'px';
+}
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
+window.send = window.send || function(){};
+window.ask = window.ask || function(q){document.getElementById('ibox').value=q;setMode('text')};
+window.setMode = window.setMode || function(m){console.log('setMode',m)};
+window.toggleMode = window.toggleMode || function(m){console.log('toggleMode',m)};
+window.enterLive = window.enterLive || function(){console.log('enterLive')};
+window.exitLive = window.exitLive || function(){console.log('exitLive')};
+window.toggleLiveMic = window.toggleLiveMic || function(){console.log('toggleLiveMic')};
+window.toggleTTS = window.toggleTTS || function(){console.log('toggleTTS')};
+window.openHistory = window.openHistory || function(){console.log('openHistory')};
+window.closeHistory = window.closeHistory || function(){console.log('closeHistory')};
+window.newConversation = window.newConversation || function(){console.log('newConversation')};
+window.loadConversation = window.loadConversation || function(id){console.log('loadConversation',id)};
+window.deleteConversation = window.deleteConversation || function(id,el){console.log('deleteConversation',id)};
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&family=Noto+Sans+SC:wght@300;400;500&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>
@@ -1026,8 +1050,7 @@ body {
     <textarea class="txt-input" id="ibox"
       placeholder="向马克思提问..."
       rows="1"
-      oninput="resize(this)"
-      onkeydown="onKey(event)"></textarea>
+      id="msgInputInline"></textarea>
     <button class="send-btn" onclick="send()">
       <svg width="18" height="18" viewBox="0 0 24 24">
         <path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/>
@@ -1099,7 +1122,7 @@ body {
 // ══════════════════════════════════════
 // CONFIG — 接入本地后端时只改这里
 // ══════════════════════════════════════
-const API_BASE = window.location.origin  // 本地后端地址
+const API_BASE = ''
 
 // ══════════════════════════════════════
 // 状态
@@ -1319,6 +1342,14 @@ function resize(el) {
 function onKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
 }
+// 动态绑定输入框事件（避免 HTML onclick 在手机浏览器未定义）
+document.addEventListener('DOMContentLoaded', function() {
+  var inp = document.getElementById('msgInputInline')
+  if (inp) {
+    inp.addEventListener('input', function() { resize(inp) })
+    inp.addEventListener('keydown', function(e) { onKey(e) })
+  }
+})
 function ask(q) {
   document.getElementById('ibox').value = q
   setMode('text')
@@ -1385,7 +1416,7 @@ function getDemoReply(q) {
 }
 
 // ══════════════════════════════════════
-// 语音消息（按住说话）
+// 语音消息（按住说话）— 录音后走讯飞识别
 // ══════════════════════════════════════
 function hS(e) {
   e.preventDefault()
@@ -1394,15 +1425,17 @@ function hS(e) {
   const btn = document.getElementById('holdBtn')
   btn.classList.add('pr'); btn.textContent = '松开 发送'
   startRec()
+  isRec = true
+  recStart = Date.now()
 }
 function hE(e) {
   e.preventDefault()
   if (!isRec) return
   shouldSend = true
   const btn = document.getElementById('holdBtn')
-  btn.classList.remove('pr'); btn.textContent = '按住 说话'
-  if (recTimer) { clearInterval(recTimer); recTimer = null }
+  btn.classList.remove('pr')
   isRec = false
+  if (recTimer) { clearInterval(recTimer); recTimer = null }
   if (mr && mr.state === 'recording') mr.stop()
 }
 function hC(e) {
@@ -1425,52 +1458,12 @@ function startRec() {
       st.getTracks().forEach(t => t.stop())
       if (shouldSend && aChunks.length > 0) {
         const dur = Math.max(1, Math.floor((Date.now() - recStart) / 1000))
-        sendVoice(aChunks.slice(), dur)
+        sendVoiceXF(aChunks.slice(), dur)
       }
       aChunks = []; shouldSend = false
     }
-    mr.start(100); isRec = true
+    mr.start(100)
   }).catch(e => console.error('[mic]', e))
-}
-async function sendVoice(chunks, dur) {
-  hideIdle()
-  // 语音气泡
-  const vDiv = document.createElement('div')
-  vDiv.className = 'voice-row'
-  vDiv.innerHTML = `<div class="voice-bbl"><span class="voice-wave">🎤</span>${dur}" 语音消息</div>`
-  document.getElementById('dialogue').appendChild(vDiv)
-  scrollBottom()
-
-  setStatus('thinking')
-  const tid = addThinking()
-
-  const blob = new Blob(chunks, { type: 'audio/webm' })
-  const b64 = await new Promise(res => {
-    const r = new FileReader()
-    r.onload = () => res(r.result.split(',')[1])
-    r.readAsDataURL(blob)
-  })
-
-  try {
-    const resp = await fetch(API_BASE + '/chat_voice', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ audio_b64: b64, history })
-    })
-    const data = await resp.json()
-    removeEl(tid)
-    if (data.transcript) history.push({ role: 'user', content: data.transcript })
-    addA(data.reply, data.audio); autoSaveConversation()
-    history.push({ role: 'assistant', content: data.reply })
-    setStatus('speaking')
-    if (data.audio) playB64(data.audio, null, () => setStatus('idle'))
-    else setTimeout(() => setStatus('idle'), 3000)
-  } catch (e) {
-    removeEl(tid)
-    addA('语音处理出错，请重试', null)
-    setStatus('idle')
-  }
-  scrollBottom()
 }
 
 // ══════════════════════════════════════
@@ -1583,107 +1576,6 @@ function finishSegAndSend() {
     liveMediaRec.stop()
   }
 }
-function sendSegHTTP(chunks) {
-  if (liveRecState === 'stopped' || liveRecState === 'idle') return
-  liveRecState = 'waiting'
-  document.getElementById('lvHint').textContent = '马克思正在思考'
-  var blob = new Blob(chunks, { type: 'audio/webm' })
-  var reader = new FileReader()
-  reader.onload = function() {
-    var b64 = reader.result.split(',')[1]
-    // 第一步：只做语音识别，不需要LLM回复（chat_stream会再做）
-    fetch(API_BASE + '/asr', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ audio_b64: b64 })
-    })
-    .then(function(r) { return r.json() })
-    .then(function(d) {
-      var transcript = d.text || d.transcript || ''
-      if (!transcript) { resumeListenHTTP(); return }
-      var tlog = document.getElementById('lvTlog')
-      var elMarx = document.getElementById('lvMarx')
-      if (elMarx) elMarx.textContent = ''
-      var elUser = document.getElementById('lvUser')
-      if (elUser) elUser.textContent = transcript
-      if (tlog) {
-        var userLine = document.createElement('div')
-        userLine.className = 'tl-user'
-        userLine.textContent = transcript
-        tlog.appendChild(userLine)
-        tlog.scrollTop = tlog.scrollHeight
-      }
-      var marxLine = null
-      if (tlog) {
-        marxLine = document.createElement('div')
-        marxLine.className = 'tl-marx'
-        marxLine.textContent = ''
-        tlog.appendChild(marxLine)
-      }
-      if (transcript) history.push({ role: 'user', content: transcript })
-      document.getElementById('lvHint').textContent = '马克思正在思考'
-      fetch(API_BASE + '/chat_stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: transcript, history: history.slice(-8) })
-      })
-      .then(function(resp) {
-        var rdr = resp.body.getReader()
-        var decoder = new TextDecoder()
-        var buf = ''
-        var fullReply = ''
-        function readChunk() {
-          rdr.read().then(function(result) {
-            if (result.done) {
-              if (history) { history.push({role:'assistant', content: fullReply}); if (history.length > 20) history = history.slice(-20) }
-              // 流结束，如果音频已播完则切idle
-              if (!liveAudioPlaying && liveAudioQueue.length === 0) {
-                setVideoState('idle')
-              }
-              resumeListenHTTP()
-              return
-            }
-            buf += decoder.decode(result.value, {stream: true})
-            var lines = buf.split('\n')
-            buf = lines.pop()
-            for (var i = 0; i < lines.length; i++) {
-              var line = lines[i].trim()
-              if (!line || !line.startsWith('data: ')) continue
-              try {
-                var evt = JSON.parse(line.substring(6))
-                if (evt.type === 'text') {
-                  fullReply += evt.delta
-                  // 文字独立显示：SSE流来就更新，不等音频
-                  if (marxLine) marxLine.textContent = fullReply
-                  var elMarx = document.getElementById('lvMarx')
-                  if (elMarx) elMarx.textContent = fullReply
-                } else if (evt.type === 'audio' && evt.audio) {
-                  lastReplyText = fullReply
-                  liveAudioQueue.push(evt.audio)
-                  if (!liveAudioPlaying) consumeLiveAudioHTTP()
-                }
-              } catch(e) {}
-            }
-            readChunk()
-          }).catch(function(e) {
-            console.error('[liveSSE] read err:', e)
-            resumeListenHTTP()
-          })
-        }
-        readChunk()
-      })
-      .catch(function(e) {
-        console.error('[liveSSE] fetch err:', e)
-        resumeListenHTTP()
-      })
-    })
-    .catch(function(e) {
-      console.error('[liveHTTP] voice err:', e)
-      resumeListenHTTP()
-    })
-  }
-  reader.readAsDataURL(blob)
-}
 function stopLiveMicHTTP() {
   liveRecState = 'stopped'
   if (liveVADTimer) { clearInterval(liveVADTimer); liveVADTimer = null }
@@ -1728,6 +1620,31 @@ function consumeLiveAudioHTTP() {
 // ══════════════════════════════════════
 // 音频播放
 // ══════════════════════════════════════
+// 浏览器语音识别（Web Speech API），跳过后端 ASR
+function browserSpeechRecognition() {
+  return new Promise(function(resolve, reject) {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) { reject(new Error('浏览器不支持语音识别')); return }
+    var rec = new SR()
+    rec.lang = 'zh-CN'
+    rec.continuous = false
+    rec.interimResults = false
+    rec.maxAlternatives = 1
+    rec.onresult = function(e) {
+      var text = e.results[0][0].transcript
+      resolve(text)
+    }
+    rec.onerror = function(e) { reject(e) }
+    rec.onend = function() { /* 正常结束 */ }
+    rec.start()
+    // 超时：10 秒没结果就放弃
+    setTimeout(function() {
+      try { rec.abort() } catch(e) {}
+      reject(new Error('语音识别超时'))
+    }, 10000)
+  })
+}
+
 function decodeB64Audio(b64) {
   var bin = atob(b64), bytes = new Uint8Array(bin.length)
   for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
@@ -1926,6 +1843,198 @@ async function autoSaveConversation() {
     const data = await res.json()
     if (data.id) currentConvId = data.id
   } catch(e) {}
+}
+
+// ══ 讯飞前端语音识别 ══
+const XF_APPID = '3f02a7e2'
+const XF_APIKEY = '41804e1ae740104d544af0d4fa7af684'
+const XF_APISECRET = 'MWY3MzNjOGEyZWE4M2Q0YmRkYzJkYzky'
+
+async function xfGenUrl() {
+  const host = 'iat-api.xfyun.cn'
+  const path = '/v2/iat'
+  const now = new Date()
+  const date = now.toUTCString()
+  const sigOrigin = `host: ${host}\ndate: ${date}\nGET ${path} HTTP/1.1`
+  
+  // 用 SubtleCrypto 做 HMAC-SHA256
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(XF_APISECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false, ['sign']
+  )
+  const sig = await crypto.subtle.sign(
+    'HMAC', key,
+    new TextEncoder().encode(sigOrigin)
+  )
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)))
+  const auth = btoa(
+    `api_key="${XF_APIKEY}", algorithm="hmac-sha256", ` +
+    `headers="host date request-line", signature="${sigB64}"`
+  )
+  return `wss://${host}${path}?authorization=${encodeURIComponent(auth)}&date=${encodeURIComponent(date)}&host=${host}`
+}
+
+function xfRecognize(audioBlob) {
+  return new Promise(async (resolve) => {
+    let result = ''
+    let timer = null
+
+    try {
+      const url = await xfGenUrl()
+      const ws = new WebSocket(url)
+
+      // 超时保护
+      timer = setTimeout(() => {
+        ws.close()
+        resolve(result)
+      }, 10000)
+
+      ws.onopen = async () => {
+        // 转为 PCM 格式
+        const arrayBuf = await audioBlob.arrayBuffer()
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 })
+        const decoded = await audioCtx.decodeAudioData(arrayBuf)
+        const pcmData = decoded.getChannelData(0)
+        const int16 = new Int16Array(pcmData.length)
+        for (let i = 0; i < pcmData.length; i++) {
+          int16[i] = Math.max(-32768, Math.min(32767, pcmData[i] * 32768))
+        }
+        const pcmBytes = new Uint8Array(int16.buffer)
+
+        // 发送第一帧
+        const chunkSize = 1280
+        let offset = 0
+
+        function sendChunk(status) {
+          const chunk = pcmBytes.slice(offset, offset + chunkSize)
+          offset += chunkSize
+          const frame = {
+            common: status === 0 ? { app_id: XF_APPID } : undefined,
+            business: status === 0 ? {
+              language: 'zh_cn', domain: 'iat',
+              accent: 'mandarin', vad_eos: 3000
+            } : undefined,
+            data: {
+              status,
+              format: 'audio/L16;rate=16000',
+              encoding: 'raw',
+              audio: btoa(String.fromCharCode(...chunk))
+            }
+          }
+          // 删除 undefined 字段
+          if (!frame.common) delete frame.common
+          if (!frame.business) delete frame.business
+          ws.send(JSON.stringify(frame))
+        }
+
+        sendChunk(0)
+        const interval = setInterval(() => {
+          if (offset >= pcmBytes.length) {
+            clearInterval(interval)
+            sendChunk(2) // 结束帧
+            return
+          }
+          sendChunk(1)
+        }, 40)
+      }
+
+      ws.onmessage = (e) => {
+        const data = JSON.parse(e.data)
+        if (data.code !== 0) {
+          console.error('[讯飞]', data.message)
+          return
+        }
+        const ws_data = data.data?.result?.ws || []
+        for (const w of ws_data) {
+          for (const cw of w.cw || []) {
+            result += cw.w || ''
+          }
+        }
+        if (data.data?.status === 2) {
+          clearTimeout(timer)
+          ws.close()
+          resolve(result.trim())
+        }
+      }
+
+      ws.onerror = () => {
+        clearTimeout(timer)
+        resolve(result)
+      }
+
+      ws.onclose = () => {
+        clearTimeout(timer)
+        resolve(result.trim())
+      }
+
+    } catch(e) {
+      console.error('[讯飞]', e)
+      clearTimeout(timer)
+      resolve('')
+    }
+  })
+}
+
+// 替换按住说话的发送逻辑
+async function sendVoiceXF(chunks, dur) {
+  hideIdle()
+
+  const vDiv = document.createElement('div')
+  vDiv.className = 'voice-row'
+  vDiv.innerHTML = `<div class="voice-bbl">
+ <span class="voice-wave">🎤</span>识别中...
+ </div>`
+  document.getElementById('dialogue').appendChild(vDiv)
+  scrollBottom()
+
+  // 调用讯飞识别
+  const blob = new Blob(chunks, { type: 'audio/webm' })
+  const text = await xfRecognize(blob)
+
+  if (!text) {
+    vDiv.querySelector('.voice-bbl').innerHTML =
+      `<span class="voice-wave">🎤</span>未识别到内容，请重试`
+    return
+  }
+
+  // 更新气泡
+  vDiv.querySelector('.voice-bbl').innerHTML =
+    `<span class="voice-wave">🎤</span>${text}`
+
+  // 发给 DeepSeek
+  history.push({ role: 'user', content: text })
+  setStatus('thinking')
+  const tid = addThinking()
+  scrollBottom()
+
+  try {
+    const res = await fetch(API_BASE + '/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        history: history.slice(0, -1),
+        tts: false
+      })
+    })
+    const data = await res.json()
+    removeEl(tid)
+    if (data.reply) {
+      addA(data.reply, data.audio)
+      history.push({ role: 'assistant', content: data.reply })
+      if (history.length > 20) history = history.slice(-20)
+      setStatus('speaking')
+      setTimeout(() => setStatus('idle'), 3000)
+      autoSaveConversation()
+    }
+  } catch(err) {
+    removeEl(tid)
+    addA('出错了，请重试', null)
+    setStatus('idle')
+  }
+  scrollBottom()
 }
 </script>
 </body>

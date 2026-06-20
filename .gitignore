@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+
+# Logs
+*.log
+
+# Archives
+_archive/
+
+# Debug / temp scripts
+_debug_*
+_fix_*
+_check_*
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Cloudflare tunnel binary
+cloudflared.exe
+config.yml
